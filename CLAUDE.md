@@ -9,8 +9,8 @@ Monorepo for a Project Management System with a C# .NET 10 Web API backend and a
 ## Monorepo Structure
 
 ```
-ProjectManagementSystem/       # ASP.NET Core 10 Web API (backend root)
-client/                        # React + TypeScript frontend (to be created)
+backend/     # ASP.NET Core 10 Web API
+frontend/    # React + TypeScript app
 ```
 
 ---
@@ -18,6 +18,8 @@ client/                        # React + TypeScript frontend (to be created)
 ## Backend (C# / .NET 10)
 
 ### Commands
+
+All backend commands run from the `backend/` directory.
 
 ```bash
 # Restore packages
@@ -47,7 +49,7 @@ dotnet ef migrations add <MigrationName>
 dotnet ef database update
 ```
 
-OpenAPI docs are available at `/openapi/v1.json` in Development. The `.http` file contains sample requests for manual testing.
+OpenAPI docs are available at `/openapi/v1.json` in Development. `backend/ProjectManagementSystem.http` contains sample requests for manual testing.
 
 ### Architecture & Conventions
 
@@ -80,12 +82,14 @@ OpenAPI docs are available at `/openapi/v1.json` in Development. The `.http` fil
 
 ### Commands
 
+All frontend commands run from the `frontend/` directory.
+
 ```bash
-# From client/
+# Install dependencies
 npm install
 
 # Start dev server
-npm start
+npm run dev
 
 # Run all unit tests
 npm test
@@ -94,10 +98,10 @@ npm test
 npm test -- path/to/Component.test.tsx
 
 # Run tests in watch mode
-npm test -- --watch
+npm run test:watch
 
 # Type-check without emitting
-npx tsc --noEmit
+npm run typecheck
 
 # Lint
 npm run lint

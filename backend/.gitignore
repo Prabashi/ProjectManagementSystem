@@ -1,0 +1,61 @@
+# ── .NET build output ─────────────────────────────────────────────────────────
+[Dd]ebug/
+[Dd]ebugPublic/
+[Rr]elease/
+[Rr]eleases/
+x64/
+x86/
+[Aa][Rr][Mm]/
+[Aa][Rr][Mm]64/
+bld/
+[Bb]in/
+[Oo]bj/
+[Ll]og/
+[Ll]ogs/
+artifacts/
+
+# ── User / local settings ─────────────────────────────────────────────────────
+*.rsuser
+*.suo
+*.user
+*.userosscache
+*.sln.docstates
+*.userprefs
+.vs/
+
+# ── NuGet ─────────────────────────────────────────────────────────────────────
+*.nupkg
+*.snupkg
+project.lock.json
+project.fragment.lock.json
+*.nuget.props
+*.nuget.targets
+**/[Pp]ackages/*
+!**/[Pp]ackages/build/
+
+# ── Test results ──────────────────────────────────────────────────────────────
+[Tt]est[Rr]esult*/
+[Bb]uild[Ll]og.*
+TestResult.xml
+nunit-*.xml
+coverage*.json
+coverage*.xml
+coverage*.info
+*.coverage
+*.coveragexml
+BenchmarkDotNet.Artifacts/
+
+# ── Secrets / environment ─────────────────────────────────────────────────────
+.env
+appsettings.*.json
+!appsettings.Development.json
+
+# ── Misc .NET tooling ─────────────────────────────────────────────────────────
+ScaffoldingReadMe.txt
+StyleCopReport.xml
+*.binlog
+healthchecksdb
+MigrationBackup/
+FodyWeavers.xsd
+.ionide/
+.tye/
