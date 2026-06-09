@@ -4,13 +4,9 @@ export const api = createApi({
   reducerPath: 'api',
   baseQuery: fetchBaseQuery({
     baseUrl: import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:5231/api',
-    prepareHeaders: (headers) => {
-      const token = localStorage.getItem('token');
-      if (token) {
-        headers.set('Authorization', `Bearer ${token}`);
-      }
-      return headers;
-    },
+    // Auth is carried by an HttpOnly cookie — the browser attaches it automatically.
+    // credentials: 'include' is required for cross-origin requests (dev: different ports).
+    credentials: 'include',
   }),
   tagTypes: [],
   endpoints: () => ({}),
