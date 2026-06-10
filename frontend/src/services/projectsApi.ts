@@ -11,6 +11,8 @@ export const projectsApi = api.injectEndpoints({
     getProjects: builder.query<Project[], void>({
       query: () => 'projects',
       providesTags: ['Project'],
+      // Always fetch fresh data when ProjectListPage mounts (e.g. on navigation back)
+      keepUnusedDataFor: 0,
     }),
     getProjectById: builder.query<Project, string>({
       query: (id) => `projects/${id}`,

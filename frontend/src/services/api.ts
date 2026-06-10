@@ -9,5 +9,7 @@ export const api = createApi({
     credentials: 'include',
   }),
   tagTypes: ['Project', 'ProjectMember'],
+  refetchOnFocus: true,
+  refetchOnReconnect: true,
   endpoints: () => ({}),
 });
