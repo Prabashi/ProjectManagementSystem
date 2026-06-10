@@ -1,6 +1,8 @@
+using System.Security.Claims;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using ProjectManagementSystem.Models.Requests;
+using ProjectManagementSystem.Models.Responses;
 using ProjectManagementSystem.Services;
 
 namespace ProjectManagementSystem.Controllers;
@@ -31,6 +33,16 @@ public class AuthController : ControllerBase
         var (user, token) = await _authService.LoginAsync(request);
         AppendAuthCookie(token);
         return Ok(user);
+    }
+
+    [Authorize]
+    [HttpGet("me")]
+    public IActionResult Me()
+    {
+        var id       = Guid.Parse(User.FindFirstValue(ClaimTypes.NameIdentifier)!);
+        var username = User.FindFirstValue(ClaimTypes.Name)!;
+        var role     = User.FindFirstValue(ClaimTypes.Role)!;
+        return Ok(new UserResponse(id, username, role));
     }
 
     [Authorize]
