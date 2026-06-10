@@ -23,7 +23,8 @@ public class AuthController : ControllerBase
     [HttpPost("register")]
     public async Task<IActionResult> Register([FromBody] RegisterRequest request)
     {
-        var user = await _authService.RegisterAsync(request);
+        var (user, token) = await _authService.RegisterAsync(request);
+        AppendAuthCookie(token);
         return CreatedAtAction(nameof(Register), user);
     }
 

@@ -19,17 +19,18 @@ public class AuthServiceTests
     // ── Register ──────────────────────────────────────────────────────────────
 
     [Fact]
-    public async Task RegisterAsync_NewUsername_ReturnsUserResponse()
+    public async Task RegisterAsync_NewUsername_ReturnsUserResponseAndToken()
     {
         _userRepository.UsernameExistsAsync("alice").Returns(false);
-        _userRepository.CreateAsync(Arg.Any<User>())
-            .Returns(ci => ci.Arg<User>());
+        _userRepository.CreateAsync(Arg.Any<User>()).Returns(ci => ci.Arg<User>());
+        _tokenService.GenerateToken(Arg.Any<User>()).Returns("jwt-token");
 
-        var result = await _sut.RegisterAsync(new RegisterRequest("alice", "Password1!", "User"));
+        var (user, token) = await _sut.RegisterAsync(new RegisterRequest("alice", "Password1!", "User"));
 
-        result.Username.Should().Be("alice");
-        result.Role.Should().Be("User");
-        result.Id.Should().NotBeEmpty();
+        user.Username.Should().Be("alice");
+        user.Role.Should().Be("User");
+        user.Id.Should().NotBeEmpty();
+        token.Should().Be("jwt-token");
     }
 
     [Fact]
@@ -50,6 +51,7 @@ public class AuthServiceTests
         User? capturedUser = null;
         _userRepository.CreateAsync(Arg.Do<User>(u => capturedUser = u))
             .Returns(ci => ci.Arg<User>());
+        _tokenService.GenerateToken(Arg.Any<User>()).Returns("jwt-token");
 
         await _sut.RegisterAsync(new RegisterRequest("bob", "PlainTextPass!", "Admin"));
 

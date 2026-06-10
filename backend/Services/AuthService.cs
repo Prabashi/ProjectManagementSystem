@@ -16,7 +16,7 @@ public class AuthService : IAuthService
         _tokenService = tokenService;
     }
 
-    public async Task<UserResponse> RegisterAsync(RegisterRequest request)
+    public async Task<(UserResponse User, string Token)> RegisterAsync(RegisterRequest request)
     {
         if (await _userRepository.UsernameExistsAsync(request.Username))
             throw new InvalidOperationException("Username is already taken.");
@@ -31,7 +31,8 @@ public class AuthService : IAuthService
         };
 
         var created = await _userRepository.CreateAsync(user);
-        return new UserResponse(created.Id, created.Username, created.Role);
+        var token   = _tokenService.GenerateToken(created);
+        return (new UserResponse(created.Id, created.Username, created.Role), token);
     }
 
     public async Task<(UserResponse User, string Token)> LoginAsync(LoginRequest request)
