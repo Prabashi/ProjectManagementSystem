@@ -3,25 +3,42 @@ import { MemoryRouter } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import App from './App';
-import authReducer from './features/auth/authSlice';
+import authReducer, { setUser } from './features/auth/authSlice';
 import { api } from './services/api';
 
 jest.mock('./services/authApi', () => ({
-  useGetMeQuery: () => ({ data: undefined, isLoading: false }),
-  useLoginMutation: () => [jest.fn(), { isLoading: false }],
+  useGetMeQuery:      () => ({ data: undefined, isLoading: false }),
+  useLoginMutation:   () => [jest.fn(), { isLoading: false }],
   useRegisterMutation: () => [jest.fn(), { isLoading: false }],
+  useLogoutMutation:  () => [jest.fn(), { isLoading: false }],
 }));
 
-function makeStore() {
-  return configureStore({
+jest.mock('./services/projectsApi', () => ({
+  useGetProjectsQuery:        () => ({ data: [], isLoading: false }),
+  useCreateProjectMutation:   () => [jest.fn(), { isLoading: false }],
+  useGetProjectByIdQuery:     () => ({ data: undefined, isLoading: false }),
+  useGetProjectMembersQuery:  () => ({ data: [], isLoading: false }),
+  useAddProjectMemberMutation: () => [jest.fn(), { isLoading: false }],
+}));
+
+jest.mock('./services/usersApi', () => ({
+  useGetUsersQuery: () => ({ data: [] }),
+}));
+
+function makeStore(authenticated = false) {
+  const store = configureStore({
     reducer: { auth: authReducer, [api.reducerPath]: api.reducer },
     middleware: (gDM) => gDM().concat(api.middleware),
   });
+  if (authenticated) {
+    store.dispatch(setUser({ id: 'u1', username: 'alice', role: 'Admin' }));
+  }
+  return store;
 }
 
-function renderApp(initialPath = '/') {
+function renderApp(initialPath = '/', authenticated = false) {
   return render(
-    <Provider store={makeStore()}>
+    <Provider store={makeStore(authenticated)}>
       <MemoryRouter initialEntries={[initialPath]}>
         <App />
       </MemoryRouter>
@@ -43,5 +60,15 @@ describe('App', () => {
   it('renders the register page at /register', () => {
     renderApp('/register');
     expect(screen.getByRole('heading', { name: /create account/i })).toBeInTheDocument();
+  });
+
+  it('renders the project list page at /projects for authenticated users', () => {
+    renderApp('/projects', true);
+    expect(screen.getByRole('heading', { name: /^projects$/i })).toBeInTheDocument();
+  });
+
+  it('redirects authenticated users from / to /projects', () => {
+    renderApp('/', true);
+    expect(screen.getByRole('heading', { name: /^projects$/i })).toBeInTheDocument();
   });
 });

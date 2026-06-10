@@ -64,9 +64,12 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 // ── Application services ──────────────────────────────────────────────────────
-builder.Services.AddScoped<IUserRepository, UserRepository>();
-builder.Services.AddScoped<ITokenService,   TokenService>();
-builder.Services.AddScoped<IAuthService,    AuthService>();
+builder.Services.AddScoped<IUserRepository,    UserRepository>();
+builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddScoped<ITokenService,      TokenService>();
+builder.Services.AddScoped<IAuthService,       AuthService>();
+builder.Services.AddScoped<IProjectService,    ProjectService>();
+builder.Services.AddScoped<IUserService,       UserService>();
 
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();

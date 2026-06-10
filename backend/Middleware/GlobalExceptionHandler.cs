@@ -21,6 +21,7 @@ public class GlobalExceptionHandler : IExceptionHandler
         {
             InvalidOperationException   => (StatusCodes.Status400BadRequest,          exception.Message),
             UnauthorizedAccessException => (StatusCodes.Status401Unauthorized,        exception.Message),
+            KeyNotFoundException        => (StatusCodes.Status404NotFound,            exception.Message),
             _                           => (StatusCodes.Status500InternalServerError, "An unexpected error occurred.")
         };
 
