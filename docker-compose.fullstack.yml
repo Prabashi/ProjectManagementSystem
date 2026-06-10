@@ -1,0 +1,43 @@
+services:
+
+  db:
+    image: postgres:17
+    environment:
+      POSTGRES_USER:     ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB:       ${DB_NAME}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test:     ["CMD-SHELL", "pg_isready -U ${DB_USER}"]
+      interval: 5s
+      timeout:  5s
+      retries:  10
+
+  migrate:
+    image: flyway/flyway:11
+    command: migrate
+    environment:
+      FLYWAY_URL:      jdbc:postgresql://db:5432/${DB_NAME}
+      FLYWAY_USER:     ${DB_USER}
+      FLYWAY_PASSWORD: ${DB_PASSWORD}
+    volumes:
+      - ./backend/sql:/flyway/sql
+    depends_on:
+      db:
+        condition: service_healthy
+
+  api:
+    build: ./backend
+    ports:
+      - "8080:8080"
+    environment:
+      ASPNETCORE_ENVIRONMENT:               Production
+      ConnectionStrings__DefaultConnection: Host=db;Port=5432;Database=${DB_NAME};Username=${DB_USER};Password=${DB_PASSWORD}
+      Jwt__Key:                             ${JWT_KEY}
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+
+volumes:
+  pgdata:

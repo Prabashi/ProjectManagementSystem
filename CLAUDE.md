@@ -9,13 +9,36 @@ Monorepo for a Project Management System with a C# .NET 10 Web API backend and a
 ## Monorepo Structure
 
 ```
-backend/     # ASP.NET Core 10 Web API
-frontend/    # React + TypeScript app
+backend/                  # ASP.NET Core 10 Web API
+frontend/                 # React + TypeScript app
+docker-compose.yml        # Dev infrastructure (db + migrate only)
+docker-compose.fullstack.yml  # Full stack for E2E/CI/production (db + migrate + api)
+.env.example              # Template for production secrets
 ```
 
 ---
 
 ## Backend (C# / .NET 10)
+
+### Local dev setup
+
+From the **monorepo root**:
+
+```bash
+# Start PostgreSQL and run all pending Flyway migrations
+docker compose up
+
+# Apply new migrations without restarting the DB
+docker compose run --rm migrate
+```
+
+Then run the API locally from `backend/`:
+
+```bash
+dotnet run        # http://localhost:5231
+```
+
+OpenAPI docs at `/openapi/v1.json` in Development. `backend/ProjectManagementSystem.http` has sample requests.
 
 ### Commands
 
@@ -40,16 +63,20 @@ dotnet test --filter "FullyQualifiedName~ClassName"
 # Run a single test method
 dotnet test --filter "FullyQualifiedName~ClassName.MethodName"
 
-# EF Core — scaffold models from existing DB (DB-first)
-dotnet ef dbcontext scaffold "Host=...;Database=...;Username=...;Password=..." \
-  Npgsql.EntityFrameworkCore.PostgreSQL -o Data/Entities --force
-
-# EF Core — create and apply a new migration
-dotnet ef migrations add <MigrationName>
-dotnet ef database update
+# Regenerate EF Core entities from the live DB (run after every migration)
+bash scripts/scaffold.sh
 ```
 
-OpenAPI docs are available at `/openapi/v1.json` in Development. `backend/ProjectManagementSystem.http` contains sample requests for manual testing.
+### Database migrations (Flyway)
+
+SQL migration files live in `backend/sql/` named `V{n}__{Description}.sql` (e.g. `V1__Create_users.sql`).
+
+**Adding a migration:**
+1. Create `backend/sql/V{next}__{Description}.sql`
+2. Run `docker compose run --rm migrate` to apply it
+3. Run `bash backend/scripts/scaffold.sh` to regenerate EF Core entities
+
+Flyway owns the schema. Never use `dotnet ef migrations add` — it would create a competing source of truth.
 
 ### Architecture & Conventions
 
@@ -64,7 +91,7 @@ OpenAPI docs are available at `/openapi/v1.json` in Development. `backend/Projec
 - `Hubs/` — SignalR hubs for real-time features
 - `Models/` — DTOs / request-response models (separate from EF entities)
 
-**Database:** PostgreSQL via `Npgsql.EntityFrameworkCore.PostgreSQL`. Use DB-first: scaffold entities from the DB, then create EF migrations to track further schema changes.
+**Database:** PostgreSQL via `Npgsql.EntityFrameworkCore.PostgreSQL`. DB-first: schema is managed by **Flyway** SQL scripts in `backend/sql/`; EF Core entities are regenerated from the live DB via `bash scripts/scaffold.sh` after each migration.
 
 **Real-time:** SignalR hubs in `Hubs/`; push updates to connected clients on relevant state changes.
 

@@ -47,8 +47,9 @@ BenchmarkDotNet.Artifacts/
 
 # ── Secrets / environment ─────────────────────────────────────────────────────
 .env
-appsettings.*.json
-!appsettings.Development.json
+
+# ── Flyway ────────────────────────────────────────────────────────────────────
+flyway.conf
 
 # ── Misc .NET tooling ─────────────────────────────────────────────────────────
 ScaffoldingReadMe.txt
