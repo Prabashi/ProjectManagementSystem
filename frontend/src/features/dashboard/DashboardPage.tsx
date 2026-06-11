@@ -21,6 +21,7 @@ import { useDeleteTicketMutation } from '../../services/ticketsApi';
 import { useAppSelector } from '../../app/hooks';
 import { selectUser } from '../auth/authSlice';
 import type { Ticket } from '../../types';
+import { useProjectHub } from '../../hooks/useProjectHub';
 import AssigneeFilter from './AssigneeFilter';
 import KanbanBoard from './KanbanBoard';
 import TicketForm from '../tickets/TicketForm';
@@ -36,6 +37,8 @@ export default function DashboardPage() {
   const [formOpen,       setFormOpen]       = useState(false);
   const [createOpen,     setCreateOpen]     = useState(false);
   const [dashboardName,  setDashboardName]  = useState('');
+
+  useProjectHub(projectId);
 
   const { data: dashboard, isLoading, isError, error } = useGetDashboardQuery(projectId);
   const { data: members = [] }                          = useGetProjectMembersQuery(projectId);

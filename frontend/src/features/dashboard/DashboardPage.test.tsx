@@ -19,6 +19,10 @@ jest.mock('../../services/projectsApi', () => ({
   useGetProjectMembersQuery: jest.fn(),
 }));
 
+jest.mock('../../hooks/useProjectHub', () => ({
+  useProjectHub: jest.fn(),
+}));
+
 jest.mock('../../services/ticketsApi', () => ({
   useDeleteTicketMutation:  jest.fn(),
   useCreateTicketMutation:  jest.fn(),

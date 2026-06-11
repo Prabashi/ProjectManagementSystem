@@ -10,15 +10,18 @@ public class TicketService : ITicketService
     private readonly ITicketRepository  _ticketRepository;
     private readonly IProjectRepository _projectRepository;
     private readonly ISprintRepository  _sprintRepository;
+    private readonly IProjectNotifier   _notifier;
 
     public TicketService(
         ITicketRepository  ticketRepository,
         IProjectRepository projectRepository,
-        ISprintRepository  sprintRepository)
+        ISprintRepository  sprintRepository,
+        IProjectNotifier   notifier)
     {
         _ticketRepository  = ticketRepository;
         _projectRepository = projectRepository;
         _sprintRepository  = sprintRepository;
+        _notifier          = notifier;
     }
 
     public async Task<TicketResponse> CreateTicketAsync(
@@ -61,7 +64,9 @@ public class TicketService : ITicketService
         };
 
         await _ticketRepository.CreateAsync(ticket);
-        return ToResponse(ticket);
+        var created = ToResponse(ticket);
+        await _notifier.TicketCreatedAsync(projectId, created);
+        return created;
     }
 
     public async Task<IEnumerable<TicketResponse>> GetTicketsAsync(
@@ -136,7 +141,9 @@ public class TicketService : ITicketService
         ticket.UpdatedAt   = DateTime.UtcNow;
 
         await _ticketRepository.UpdateAsync(ticket);
-        return ToResponse(ticket);
+        var updated = ToResponse(ticket);
+        await _notifier.TicketUpdatedAsync(projectId, updated);
+        return updated;
     }
 
     public async Task<TicketResponse> MoveTicketAsync(
@@ -161,7 +168,9 @@ public class TicketService : ITicketService
         ticket.UpdatedAt = DateTime.UtcNow;
 
         await _ticketRepository.UpdateAsync(ticket);
-        return ToResponse(ticket);
+        var moved = ToResponse(ticket);
+        await _notifier.TicketUpdatedAsync(projectId, moved);
+        return moved;
     }
 
     public async Task DeleteTicketAsync(Guid projectId, Guid ticketId)
@@ -176,6 +185,7 @@ public class TicketService : ITicketService
             throw new KeyNotFoundException($"Ticket {ticketId} not found in project {projectId}.");
 
         await _ticketRepository.DeleteAsync(ticket);
+        await _notifier.TicketDeletedAsync(projectId, ticketId);
     }
 
     private static TicketResponse ToResponse(Ticket t) =>

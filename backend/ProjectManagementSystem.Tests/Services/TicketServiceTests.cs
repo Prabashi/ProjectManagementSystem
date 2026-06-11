@@ -10,6 +10,7 @@ public class TicketServiceTests
     private readonly ITicketRepository  _ticketRepository  = Substitute.For<ITicketRepository>();
     private readonly IProjectRepository _projectRepository = Substitute.For<IProjectRepository>();
     private readonly ISprintRepository  _sprintRepository  = Substitute.For<ISprintRepository>();
+    private readonly IProjectNotifier   _notifier          = Substitute.For<IProjectNotifier>();
     private readonly TicketService      _sut;
 
     private readonly Guid _projectId = Guid.NewGuid();
@@ -19,7 +20,7 @@ public class TicketServiceTests
 
     public TicketServiceTests()
     {
-        _sut = new TicketService(_ticketRepository, _projectRepository, _sprintRepository);
+        _sut = new TicketService(_ticketRepository, _projectRepository, _sprintRepository, _notifier);
     }
 
     // ── CreateTicketAsync ────────────────────────────────────────────────────────

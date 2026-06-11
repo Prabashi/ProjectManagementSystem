@@ -9,11 +9,16 @@ public class SprintService : ISprintService
 {
     private readonly ISprintRepository  _sprintRepository;
     private readonly IProjectRepository _projectRepository;
+    private readonly IProjectNotifier   _notifier;
 
-    public SprintService(ISprintRepository sprintRepository, IProjectRepository projectRepository)
+    public SprintService(
+        ISprintRepository  sprintRepository,
+        IProjectRepository projectRepository,
+        IProjectNotifier   notifier)
     {
         _sprintRepository  = sprintRepository;
         _projectRepository = projectRepository;
+        _notifier          = notifier;
     }
 
     public async Task<SprintResponse> CreateSprintAsync(Guid projectId, CreateSprintRequest request)
@@ -79,7 +84,9 @@ public class SprintService : ISprintService
         await _sprintRepository.DeactivateAllAsync(projectId);
         sprint.IsActive = true;
         await _sprintRepository.UpdateAsync(sprint);
-        return ToResponse(sprint);
+        var response = ToResponse(sprint);
+        await _notifier.SprintChangedAsync(projectId, response);
+        return response;
     }
 
     public async Task DeleteSprintAsync(Guid projectId, Guid sprintId)

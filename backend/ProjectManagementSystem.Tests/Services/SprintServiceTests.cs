@@ -9,6 +9,7 @@ public class SprintServiceTests
 {
     private readonly ISprintRepository  _sprintRepository  = Substitute.For<ISprintRepository>();
     private readonly IProjectRepository _projectRepository = Substitute.For<IProjectRepository>();
+    private readonly IProjectNotifier   _notifier          = Substitute.For<IProjectNotifier>();
     private readonly SprintService      _sut;
 
     private readonly Guid _projectId = Guid.NewGuid();
@@ -17,7 +18,7 @@ public class SprintServiceTests
 
     public SprintServiceTests()
     {
-        _sut = new SprintService(_sprintRepository, _projectRepository);
+        _sut = new SprintService(_sprintRepository, _projectRepository, _notifier);
     }
 
     // ── CreateSprintAsync ────────────────────────────────────────────────────────

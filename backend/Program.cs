@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.IdentityModel.Tokens;
 using ProjectManagementSystem.Data;
+using ProjectManagementSystem.Hubs;
 using ProjectManagementSystem.Middleware;
 using ProjectManagementSystem.Repositories;
 using ProjectManagementSystem.Services;
@@ -76,6 +77,7 @@ builder.Services.AddScoped<ITicketRepository,    TicketRepository>();
 builder.Services.AddScoped<ITicketService,       TicketService>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IDashboardService,    DashboardService>();
+builder.Services.AddScoped<IProjectNotifier,     SignalRProjectNotifier>();
 
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
@@ -90,6 +92,7 @@ app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapControllers();
+app.MapHub<ProjectHub>("/hubs/project");
 
 app.Run();
 
