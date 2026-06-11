@@ -65,6 +65,7 @@ export default function KanbanColumn({
               isAdmin={isAdmin}
               onEdit={() => onEdit(ticket)}
               onDelete={() => onDelete(ticket.id)}
+              showStatus={false}
               draggable={!!onDragStart}
               isDragging={ticket.id === draggingId}
               onDragStart={() => onDragStart?.(ticket.id)}

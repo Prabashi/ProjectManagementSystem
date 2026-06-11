@@ -18,13 +18,14 @@ interface Props {
   isAdmin: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  showStatus?: boolean;
   draggable?: boolean;
   isDragging?: boolean;
   onDragStart?: () => void;
   onDragEnd?: () => void;
 }
 
-export default function TicketCard({ ticket, isAdmin, onEdit, onDelete, draggable = false, isDragging = false, onDragStart, onDragEnd }: Props) {
+export default function TicketCard({ ticket, isAdmin, onEdit, onDelete, showStatus = true, draggable = false, isDragging = false, onDragStart, onDragEnd }: Props) {
   return (
     <Card
       role="article"
@@ -39,11 +40,13 @@ export default function TicketCard({ ticket, isAdmin, onEdit, onDelete, draggabl
           <Box sx={{ flex: 1, mr: 1 }}>
             <Typography variant="subtitle2" gutterBottom>{ticket.subject}</Typography>
             <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
-              <Chip
-                label={TICKET_STATUS_LABELS[ticket.status]}
-                color={STATUS_COLORS[ticket.status]}
-                size="small"
-              />
+              {showStatus && (
+                <Chip
+                  label={TICKET_STATUS_LABELS[ticket.status]}
+                  color={STATUS_COLORS[ticket.status]}
+                  size="small"
+                />
+              )}
               {ticket.assigneeName && (
                 <Typography variant="caption" color="text.secondary">
                   {ticket.assigneeName}
