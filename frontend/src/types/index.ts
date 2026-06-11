@@ -51,6 +51,16 @@ export interface Ticket {
   updatedAt: string;
 }
 
+export interface Dashboard {
+  id: string;
+  projectId: string;
+  name: string;
+  createdByUserId: string;
+  createdAt: string;
+  activeSprintId?: string | null;
+  tickets: Ticket[];
+}
+
 export interface Sprint {
   id: string;
   projectId: string;

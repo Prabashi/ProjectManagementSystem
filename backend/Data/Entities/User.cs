@@ -15,6 +15,8 @@ public partial class User
 
     public DateTime CreatedAt { get; set; }
 
+    public virtual ICollection<Dashboard> Dashboards { get; set; } = new List<Dashboard>();
+
     public virtual ICollection<ProjectMember> ProjectMembers { get; set; } = new List<ProjectMember>();
 
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();

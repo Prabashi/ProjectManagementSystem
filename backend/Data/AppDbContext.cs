@@ -12,6 +12,8 @@ public partial class AppDbContext : DbContext
     {
     }
 
+    public virtual DbSet<Dashboard> Dashboards { get; set; }
+
     public virtual DbSet<FlywaySchemaHistory> FlywaySchemaHistories { get; set; }
 
     public virtual DbSet<Project> Projects { get; set; }
@@ -26,6 +28,36 @@ public partial class AppDbContext : DbContext
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
+        modelBuilder.Entity<Dashboard>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("dashboards_pkey");
+
+            entity.ToTable("dashboards");
+
+            entity.HasIndex(e => e.ProjectId, "dashboards_project_id_key").IsUnique();
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .HasColumnName("name");
+            entity.Property(e => e.ProjectId).HasColumnName("project_id");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.Dashboards)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("dashboards_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.Project).WithOne(p => p.Dashboard)
+                .HasForeignKey<Dashboard>(d => d.ProjectId)
+                .HasConstraintName("dashboards_project_id_fkey");
+        });
+
         modelBuilder.Entity<FlywaySchemaHistory>(entity =>
         {
             entity.HasKey(e => e.InstalledRank).HasName("flyway_schema_history_pk");

@@ -72,8 +72,10 @@ builder.Services.AddScoped<IProjectService,    ProjectService>();
 builder.Services.AddScoped<IUserService,       UserService>();
 builder.Services.AddScoped<ISprintRepository,  SprintRepository>();
 builder.Services.AddScoped<ISprintService,     SprintService>();
-builder.Services.AddScoped<ITicketRepository,  TicketRepository>();
-builder.Services.AddScoped<ITicketService,     TicketService>();
+builder.Services.AddScoped<ITicketRepository,    TicketRepository>();
+builder.Services.AddScoped<ITicketService,       TicketService>();
+builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
+builder.Services.AddScoped<IDashboardService,    DashboardService>();
 
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();

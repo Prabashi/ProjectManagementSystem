@@ -26,6 +26,9 @@ public class SprintRepository : ISprintRepository
     public async Task<Sprint?> GetByIdAsync(Guid sprintId)
         => await _context.Sprints.FindAsync(sprintId);
 
+    public async Task<Sprint?> GetActiveSprintAsync(Guid projectId)
+        => await _context.Sprints.FirstOrDefaultAsync(s => s.ProjectId == projectId && s.IsActive);
+
     public async Task UpdateAsync(Sprint sprint)
     {
         _context.Sprints.Update(sprint);

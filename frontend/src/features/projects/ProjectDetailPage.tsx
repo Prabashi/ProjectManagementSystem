@@ -15,6 +15,7 @@ import {
   Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
+import DashboardIcon from '@mui/icons-material/Dashboard';
 import PersonAddIcon from '@mui/icons-material/PersonAdd';
 import { useGetProjectByIdQuery, useGetProjectMembersQuery } from '../../services/projectsApi';
 import { useAppSelector } from '../../app/hooks';
@@ -43,9 +44,14 @@ export default function ProjectDetailPage() {
 
   return (
     <Box>
-      <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/projects')} sx={{ mb: 2 }}>
-        Back to projects
-      </Button>
+      <Stack direction="row" justifyContent="space-between" sx={{ mb: 2 }}>
+        <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/projects')}>
+          Back to projects
+        </Button>
+        <Button variant="outlined" startIcon={<DashboardIcon />} onClick={() => navigate(`/projects/${id}/dashboard`)}>
+          Dashboard
+        </Button>
+      </Stack>
 
       <Stack spacing={1} sx={{ mb: 3 }}>
         <Typography variant="h4">{project.name}</Typography>

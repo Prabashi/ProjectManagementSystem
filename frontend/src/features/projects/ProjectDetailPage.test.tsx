@@ -106,4 +106,9 @@ describe('ProjectDetailPage', () => {
     await userEvent.click(screen.getByRole('tab', { name: /sprints/i }));
     expect(screen.getByRole('button', { name: /new sprint/i })).toBeInTheDocument();
   });
+
+  it('renders the Dashboard navigation button', () => {
+    renderPage();
+    expect(screen.getByRole('button', { name: /dashboard/i })).toBeInTheDocument();
+  });
 });
