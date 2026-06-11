@@ -77,7 +77,7 @@ export default function DashboardPage() {
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(`/projects/${projectId}`)} sx={{ mb: 3 }}>
           Back to project
         </Button>
-        <Stack spacing={2} alignItems="flex-start">
+        <Stack spacing={2} sx={{ alignItems: 'flex-start' }}>
           <Typography variant="h5">Dashboard</Typography>
           <Typography color="text.secondary">No dashboard has been created for this project yet.</Typography>
           {isAdmin && (
@@ -120,7 +120,7 @@ export default function DashboardPage() {
 
   return (
     <Box sx={{ p: 3 }}>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 3 }}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 3 }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate(`/projects/${projectId}`)}>
           Back to project
         </Button>
@@ -128,12 +128,13 @@ export default function DashboardPage() {
         <Box sx={{ width: 140 }} />
       </Stack>
 
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <AssigneeFilter members={members} value={assigneeFilter} onChange={setAssigneeFilter} />
       </Stack>
 
       {dashboard.activeSprintId ? (
         <KanbanBoard
+          projectId={projectId}
           tickets={filteredTickets}
           isAdmin={isAdmin}
           onEdit={(t) => { setEditingTicket(t); setFormOpen(true); }}

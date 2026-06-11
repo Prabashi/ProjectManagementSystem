@@ -1,9 +1,9 @@
-import { render, screen } from '@testing-library/react';
+import { render, screen, fireEvent } from '@testing-library/react';
 import KanbanColumn from './KanbanColumn';
 import type { Ticket } from '../../types';
 
 const tickets: Ticket[] = [
-  { id: 't1', projectId: 'p1', subject: 'Bug fix',   status: 'ToDo', boardOrder: 0, createdByUserId: 'u1', createdAt: '', updatedAt: '' },
+  { id: 't1', projectId: 'p1', subject: 'Bug fix',    status: 'ToDo', boardOrder: 0, createdByUserId: 'u1', createdAt: '', updatedAt: '' },
   { id: 't2', projectId: 'p1', subject: 'Write docs', status: 'ToDo', boardOrder: 1, createdByUserId: 'u1', createdAt: '', updatedAt: '' },
 ];
 
@@ -32,5 +32,41 @@ describe('KanbanColumn', () => {
   it('shows delete button only for Admin', () => {
     render(<KanbanColumn status="ToDo" tickets={tickets} isAdmin={true} onEdit={jest.fn()} onDelete={jest.fn()} />);
     expect(screen.getAllByRole('button', { name: /delete/i })).toHaveLength(2);
+  });
+
+  it('calls onDragOver handler when dragged over', () => {
+    const onDragOver = jest.fn();
+    render(
+      <KanbanColumn
+        status="ToDo" tickets={[]} isAdmin={false} onEdit={jest.fn()} onDelete={jest.fn()}
+        draggingId="t1" onDragOver={onDragOver}
+      />
+    );
+    fireEvent.dragOver(screen.getByTestId('kanban-column-ToDo'));
+    expect(onDragOver).toHaveBeenCalled();
+  });
+
+  it('calls onDrop handler with the column status when dropped', () => {
+    const onDrop = jest.fn();
+    render(
+      <KanbanColumn
+        status="InProgress" tickets={[]} isAdmin={false} onEdit={jest.fn()} onDelete={jest.fn()}
+        draggingId="t1" onDrop={onDrop}
+      />
+    );
+    fireEvent.drop(screen.getByTestId('kanban-column-InProgress'));
+    expect(onDrop).toHaveBeenCalledWith(expect.any(Object), 'InProgress');
+  });
+
+  it('passes draggable and onDragStart to each TicketCard when drag handlers are provided', () => {
+    const onDragStart = jest.fn();
+    render(
+      <KanbanColumn
+        status="ToDo" tickets={tickets} isAdmin={false} onEdit={jest.fn()} onDelete={jest.fn()}
+        draggingId={null} onDragStart={onDragStart}
+      />
+    );
+    const cards = screen.getAllByRole('article');
+    expect(cards[0]).toHaveAttribute('draggable', 'true');
   });
 });

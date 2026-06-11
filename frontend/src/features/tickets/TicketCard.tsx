@@ -18,16 +18,27 @@ interface Props {
   isAdmin: boolean;
   onEdit: () => void;
   onDelete: () => void;
+  draggable?: boolean;
+  isDragging?: boolean;
+  onDragStart?: () => void;
+  onDragEnd?: () => void;
 }
 
-export default function TicketCard({ ticket, isAdmin, onEdit, onDelete }: Props) {
+export default function TicketCard({ ticket, isAdmin, onEdit, onDelete, draggable = false, isDragging = false, onDragStart, onDragEnd }: Props) {
   return (
-    <Card variant="outlined">
+    <Card
+      role="article"
+      variant="outlined"
+      draggable={draggable}
+      onDragStart={onDragStart}
+      onDragEnd={onDragEnd}
+      sx={{ opacity: isDragging ? 0.4 : 1, cursor: draggable ? 'grab' : 'default', transition: 'opacity 0.15s' }}
+    >
       <CardContent sx={{ pb: '12px !important' }}>
-        <Stack direction="row" justifyContent="space-between" alignItems="flex-start">
+        <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'flex-start' }}>
           <Box sx={{ flex: 1, mr: 1 }}>
             <Typography variant="subtitle2" gutterBottom>{ticket.subject}</Typography>
-            <Stack direction="row" spacing={1} alignItems="center" flexWrap="wrap" useFlexGap>
+            <Stack direction="row" spacing={1} sx={{ alignItems: 'center', flexWrap: 'wrap' }} useFlexGap>
               <Chip
                 label={TICKET_STATUS_LABELS[ticket.status]}
                 color={STATUS_COLORS[ticket.status]}

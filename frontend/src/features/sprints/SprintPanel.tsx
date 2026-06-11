@@ -62,7 +62,7 @@ export default function SprintPanel({ projectId, isAdmin }: Props) {
                 disableGutters
                 secondaryAction={
                   isAdmin && (
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                       <Button
                         size="small"
                         variant={sprint.isActive ? 'contained' : 'outlined'}
@@ -87,7 +87,7 @@ export default function SprintPanel({ projectId, isAdmin }: Props) {
               >
                 <ListItemText
                   primary={
-                    <Stack direction="row" spacing={1} alignItems="center">
+                    <Stack direction="row" spacing={1} sx={{ alignItems: 'center' }}>
                       <Typography>{sprint.name}</Typography>
                       {sprint.isActive && <Chip label="Active" color="success" size="small" />}
                     </Stack>

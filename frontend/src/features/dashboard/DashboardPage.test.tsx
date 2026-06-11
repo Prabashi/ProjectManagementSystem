@@ -20,9 +20,10 @@ jest.mock('../../services/projectsApi', () => ({
 }));
 
 jest.mock('../../services/ticketsApi', () => ({
-  useDeleteTicketMutation: jest.fn(),
-  useCreateTicketMutation: jest.fn(),
-  useUpdateTicketMutation: jest.fn(),
+  useDeleteTicketMutation:  jest.fn(),
+  useCreateTicketMutation:  jest.fn(),
+  useUpdateTicketMutation:  jest.fn(),
+  useMoveTicketMutation:    jest.fn(),
 }));
 
 jest.mock('../../services/sprintsApi', () => ({
@@ -71,6 +72,7 @@ describe('DashboardPage', () => {
     (ticketsApiHooks.useDeleteTicketMutation as jest.Mock).mockReturnValue([jest.fn(), {}]);
     (ticketsApiHooks.useCreateTicketMutation as jest.Mock).mockReturnValue([jest.fn(), { isLoading: false }]);
     (ticketsApiHooks.useUpdateTicketMutation as jest.Mock).mockReturnValue([jest.fn(), { isLoading: false }]);
+    (ticketsApiHooks.useMoveTicketMutation   as jest.Mock).mockReturnValue([jest.fn(), {}]);
   });
 
   it('shows loading spinner while fetching', () => {

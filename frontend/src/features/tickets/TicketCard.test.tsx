@@ -1,5 +1,6 @@
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
+import { fireEvent } from '@testing-library/react';
 import TicketCard from './TicketCard';
 import type { Ticket } from '../../types';
 
@@ -66,5 +67,41 @@ describe('TicketCard', () => {
     render(<TicketCard ticket={ticket} isAdmin={true} onEdit={jest.fn()} onDelete={onDelete} />);
     await userEvent.click(screen.getByRole('button', { name: /delete fix login bug/i }));
     expect(onDelete).toHaveBeenCalled();
+  });
+
+  it('is not draggable by default', () => {
+    render(<TicketCard ticket={ticket} isAdmin={false} onEdit={jest.fn()} onDelete={jest.fn()} />);
+    expect(screen.getByRole('article')).toHaveAttribute('draggable', 'false');
+  });
+
+  it('is draggable when draggable prop is true', () => {
+    render(<TicketCard ticket={ticket} isAdmin={false} onEdit={jest.fn()} onDelete={jest.fn()} draggable />);
+    expect(screen.getByRole('article')).toHaveAttribute('draggable', 'true');
+  });
+
+  it('applies reduced opacity when isDragging is true', () => {
+    render(<TicketCard ticket={ticket} isAdmin={false} onEdit={jest.fn()} onDelete={jest.fn()} isDragging />);
+    const card = screen.getByRole('article');
+    expect(card).toHaveStyle('opacity: 0.4');
+  });
+
+  it('calls onDragStart when dragging begins', () => {
+    const onDragStart = jest.fn();
+    render(
+      <TicketCard ticket={ticket} isAdmin={false} onEdit={jest.fn()} onDelete={jest.fn()}
+        draggable onDragStart={onDragStart} />
+    );
+    fireEvent.dragStart(screen.getByRole('article'));
+    expect(onDragStart).toHaveBeenCalled();
+  });
+
+  it('calls onDragEnd when dragging ends', () => {
+    const onDragEnd = jest.fn();
+    render(
+      <TicketCard ticket={ticket} isAdmin={false} onEdit={jest.fn()} onDelete={jest.fn()}
+        draggable onDragEnd={onDragEnd} />
+    );
+    fireEvent.dragEnd(screen.getByRole('article'));
+    expect(onDragEnd).toHaveBeenCalled();
   });
 });

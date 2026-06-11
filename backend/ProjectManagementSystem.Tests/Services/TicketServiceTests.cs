@@ -215,6 +215,89 @@ public class TicketServiceTests
         await act.Should().ThrowAsync<KeyNotFoundException>();
     }
 
+    // ── MoveTicketAsync ──────────────────────────────────────────────────────────
+
+    [Fact]
+    public async Task MoveTicketAsync_SameStatus_PreservesBoardOrder()
+    {
+        _projectRepository.GetByIdAsync(_projectId).Returns(new Project { Id = _projectId });
+        _projectRepository.IsMemberAsync(_projectId, _userId).Returns(true);
+        var ticket = new Ticket { Id = _ticketId, ProjectId = _projectId, Subject = "Bug", Status = "ToDo",
+                                  BoardOrder = 3, CreatedByUserId = _userId, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        _ticketRepository.GetByIdAsync(_ticketId).Returns(ticket);
+        _ticketRepository.UpdateAsync(Arg.Any<Ticket>()).Returns(Task.CompletedTask);
+
+        var result = await _sut.MoveTicketAsync(_projectId, _ticketId, _userId, new MoveTicketRequest("ToDo"));
+
+        result.Status.Should().Be("ToDo");
+        result.BoardOrder.Should().Be(3);
+        await _ticketRepository.DidNotReceive().GetMaxBoardOrderAsync(Arg.Any<Guid>(), Arg.Any<string>());
+    }
+
+    [Fact]
+    public async Task MoveTicketAsync_DifferentStatus_PlacesAtEndOfNewColumn()
+    {
+        _projectRepository.GetByIdAsync(_projectId).Returns(new Project { Id = _projectId });
+        _projectRepository.IsMemberAsync(_projectId, _userId).Returns(true);
+        var ticket = new Ticket { Id = _ticketId, ProjectId = _projectId, Subject = "Bug", Status = "ToDo",
+                                  BoardOrder = 1, CreatedByUserId = _userId, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow };
+        _ticketRepository.GetByIdAsync(_ticketId).Returns(ticket);
+        _ticketRepository.GetMaxBoardOrderAsync(_projectId, "InProgress").Returns(2);
+        _ticketRepository.UpdateAsync(Arg.Any<Ticket>()).Returns(Task.CompletedTask);
+
+        var result = await _sut.MoveTicketAsync(_projectId, _ticketId, _userId, new MoveTicketRequest("InProgress"));
+
+        result.Status.Should().Be("InProgress");
+        result.BoardOrder.Should().Be(3);
+    }
+
+    [Fact]
+    public async Task MoveTicketAsync_ProjectNotFound_ThrowsKeyNotFoundException()
+    {
+        _projectRepository.GetByIdAsync(_projectId).Returns((Project?)null);
+
+        var act = () => _sut.MoveTicketAsync(_projectId, _ticketId, _userId, new MoveTicketRequest("ToDo"));
+
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public async Task MoveTicketAsync_NotMember_ThrowsUnauthorizedAccessException()
+    {
+        _projectRepository.GetByIdAsync(_projectId).Returns(new Project { Id = _projectId });
+        _projectRepository.IsMemberAsync(_projectId, _userId).Returns(false);
+
+        var act = () => _sut.MoveTicketAsync(_projectId, _ticketId, _userId, new MoveTicketRequest("ToDo"));
+
+        await act.Should().ThrowAsync<UnauthorizedAccessException>();
+    }
+
+    [Fact]
+    public async Task MoveTicketAsync_TicketNotFound_ThrowsKeyNotFoundException()
+    {
+        _projectRepository.GetByIdAsync(_projectId).Returns(new Project { Id = _projectId });
+        _projectRepository.IsMemberAsync(_projectId, _userId).Returns(true);
+        _ticketRepository.GetByIdAsync(_ticketId).Returns((Ticket?)null);
+
+        var act = () => _sut.MoveTicketAsync(_projectId, _ticketId, _userId, new MoveTicketRequest("ToDo"));
+
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
+    [Fact]
+    public async Task MoveTicketAsync_TicketBelongsToDifferentProject_ThrowsKeyNotFoundException()
+    {
+        _projectRepository.GetByIdAsync(_projectId).Returns(new Project { Id = _projectId });
+        _projectRepository.IsMemberAsync(_projectId, _userId).Returns(true);
+        _ticketRepository.GetByIdAsync(_ticketId).Returns(
+            new Ticket { Id = _ticketId, ProjectId = Guid.NewGuid(), Subject = "Bug", Status = "ToDo",
+                         BoardOrder = 0, CreatedByUserId = _userId, CreatedAt = DateTime.UtcNow, UpdatedAt = DateTime.UtcNow });
+
+        var act = () => _sut.MoveTicketAsync(_projectId, _ticketId, _userId, new MoveTicketRequest("ToDo"));
+
+        await act.Should().ThrowAsync<KeyNotFoundException>();
+    }
+
     // ── DeleteTicketAsync ────────────────────────────────────────────────────────
 
     [Fact]

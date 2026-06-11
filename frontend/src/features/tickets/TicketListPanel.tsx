@@ -53,7 +53,7 @@ export default function TicketListPanel({ projectId, isAdmin }: Props) {
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" alignItems="center" sx={{ mb: 2 }}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
         <FormControl size="small" sx={{ minWidth: 160 }}>
           <InputLabel id="sprint-filter-label">Sprint</InputLabel>
           <Select

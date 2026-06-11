@@ -44,7 +44,7 @@ export default function ProjectDetailPage() {
 
   return (
     <Box>
-      <Stack direction="row" justifyContent="space-between" sx={{ mb: 2 }}>
+      <Stack direction="row" sx={{ justifyContent: 'space-between', mb: 2 }}>
         <Button startIcon={<ArrowBackIcon />} onClick={() => navigate('/projects')}>
           Back to projects
         </Button>

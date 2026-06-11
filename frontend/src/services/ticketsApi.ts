@@ -49,6 +49,13 @@ export const ticketsApi = api.injectEndpoints({
       }),
       invalidatesTags: (_result, _error, { projectId }) => [{ type: 'Ticket', id: projectId }],
     }),
+    moveTicket: builder.mutation<Ticket, { projectId: string; ticketId: string; status: TicketStatus }>({
+      query: ({ projectId, ticketId, status }) => ({
+        url: `projects/${projectId}/tickets/${ticketId}/move`,
+        method: 'PATCH',
+        body: { status },
+      }),
+    }),
   }),
 });
 
@@ -58,4 +65,5 @@ export const {
   useCreateTicketMutation,
   useUpdateTicketMutation,
   useDeleteTicketMutation,
+  useMoveTicketMutation,
 } = ticketsApi;

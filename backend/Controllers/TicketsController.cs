@@ -43,6 +43,13 @@ public class TicketsController : ControllerBase
         return Ok(ticket);
     }
 
+    [HttpPatch("{ticketId:guid}/move")]
+    public async Task<IActionResult> Move(Guid projectId, Guid ticketId, [FromBody] MoveTicketRequest request)
+    {
+        var ticket = await _ticketService.MoveTicketAsync(projectId, ticketId, GetUserId(), request);
+        return Ok(ticket);
+    }
+
     [HttpDelete("{ticketId:guid}")]
     [Authorize(Roles = "Admin")]
     public async Task<IActionResult> Delete(Guid projectId, Guid ticketId)

@@ -139,6 +139,31 @@ public class TicketService : ITicketService
         return ToResponse(ticket);
     }
 
+    public async Task<TicketResponse> MoveTicketAsync(
+        Guid projectId, Guid ticketId, Guid userId, MoveTicketRequest request)
+    {
+        _ = await _projectRepository.GetByIdAsync(projectId)
+            ?? throw new KeyNotFoundException($"Project {projectId} not found.");
+
+        if (!await _projectRepository.IsMemberAsync(projectId, userId))
+            throw new UnauthorizedAccessException("You are not a member of this project.");
+
+        var ticket = await _ticketRepository.GetByIdAsync(ticketId)
+            ?? throw new KeyNotFoundException($"Ticket {ticketId} not found.");
+
+        if (ticket.ProjectId != projectId)
+            throw new KeyNotFoundException($"Ticket {ticketId} not found in project {projectId}.");
+
+        if (ticket.Status != request.Status)
+            ticket.BoardOrder = await _ticketRepository.GetMaxBoardOrderAsync(projectId, request.Status) + 1;
+
+        ticket.Status    = request.Status;
+        ticket.UpdatedAt = DateTime.UtcNow;
+
+        await _ticketRepository.UpdateAsync(ticket);
+        return ToResponse(ticket);
+    }
+
     public async Task DeleteTicketAsync(Guid projectId, Guid ticketId)
     {
         _ = await _projectRepository.GetByIdAsync(projectId)

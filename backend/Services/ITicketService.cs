@@ -9,5 +9,6 @@ public interface ITicketService
     Task<IEnumerable<TicketResponse>> GetTicketsAsync(Guid projectId, Guid userId, Guid? sprintId = null);
     Task<TicketResponse>              GetTicketByIdAsync(Guid projectId, Guid ticketId, Guid userId);
     Task<TicketResponse>              UpdateTicketAsync(Guid projectId, Guid ticketId, Guid userId, UpdateTicketRequest request);
+    Task<TicketResponse>              MoveTicketAsync(Guid projectId, Guid ticketId, Guid userId, MoveTicketRequest request);
     Task                              DeleteTicketAsync(Guid projectId, Guid ticketId);
 }
