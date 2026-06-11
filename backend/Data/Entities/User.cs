@@ -18,4 +18,8 @@ public partial class User
     public virtual ICollection<ProjectMember> ProjectMembers { get; set; } = new List<ProjectMember>();
 
     public virtual ICollection<Project> Projects { get; set; } = new List<Project>();
+
+    public virtual ICollection<Ticket> TicketAssignees { get; set; } = new List<Ticket>();
+
+    public virtual ICollection<Ticket> TicketCreatedByUsers { get; set; } = new List<Ticket>();
 }

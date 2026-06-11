@@ -21,6 +21,7 @@ import { useAppSelector } from '../../app/hooks';
 import { selectUser } from '../auth/authSlice';
 import AddMemberDialog from './AddMemberDialog';
 import SprintPanel from '../sprints/SprintPanel';
+import TicketListPanel from '../tickets/TicketListPanel';
 
 export default function ProjectDetailPage() {
   const { id = '' }                 = useParams<{ id: string }>();
@@ -58,6 +59,7 @@ export default function ProjectDetailPage() {
       <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
         <Tab label="Members" />
         <Tab label="Sprints" />
+        <Tab label="Tickets" />
       </Tabs>
 
       {tab === 0 && (
@@ -88,6 +90,10 @@ export default function ProjectDetailPage() {
 
       {tab === 1 && (
         <SprintPanel projectId={id} isAdmin={user?.role === 'Admin'} />
+      )}
+
+      {tab === 2 && (
+        <TicketListPanel projectId={id} isAdmin={user?.role === 'Admin'} />
       )}
     </Box>
   );

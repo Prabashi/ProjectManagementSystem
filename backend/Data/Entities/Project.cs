@@ -22,4 +22,6 @@ public partial class Project
     public virtual ICollection<ProjectMember> ProjectMembers { get; set; } = new List<ProjectMember>();
 
     public virtual Sprint? Sprint { get; set; }
+
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

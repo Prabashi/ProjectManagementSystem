@@ -20,6 +20,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<Sprint> Sprints { get; set; }
 
+    public virtual DbSet<Ticket> Tickets { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -140,6 +142,61 @@ public partial class AppDbContext : DbContext
             entity.HasOne(d => d.Project).WithOne(p => p.Sprint)
                 .HasForeignKey<Sprint>(d => d.ProjectId)
                 .HasConstraintName("sprints_project_id_fkey");
+        });
+
+        modelBuilder.Entity<Ticket>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("tickets_pkey");
+
+            entity.ToTable("tickets");
+
+            entity.HasIndex(e => new { e.ProjectId, e.SprintId }, "ix_tickets_project_sprint");
+
+            entity.HasIndex(e => new { e.ProjectId, e.Status, e.BoardOrder }, "ix_tickets_status_order");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+            entity.Property(e => e.AssigneeId).HasColumnName("assignee_id");
+            entity.Property(e => e.BoardOrder).HasColumnName("board_order");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.CreatedByUserId).HasColumnName("created_by_user_id");
+            entity.Property(e => e.Description).HasColumnName("description");
+            entity.Property(e => e.Estimate)
+                .HasPrecision(5, 2)
+                .HasColumnName("estimate");
+            entity.Property(e => e.ProjectId).HasColumnName("project_id");
+            entity.Property(e => e.SprintId).HasColumnName("sprint_id");
+            entity.Property(e => e.Status)
+                .HasMaxLength(20)
+                .HasColumnName("status");
+            entity.Property(e => e.Subject)
+                .HasMaxLength(200)
+                .HasColumnName("subject");
+            entity.Property(e => e.UpdatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("updated_at");
+
+            entity.HasOne(d => d.Assignee).WithMany(p => p.TicketAssignees)
+                .HasForeignKey(d => d.AssigneeId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("tickets_assignee_id_fkey");
+
+            entity.HasOne(d => d.CreatedByUser).WithMany(p => p.TicketCreatedByUsers)
+                .HasForeignKey(d => d.CreatedByUserId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("tickets_created_by_user_id_fkey");
+
+            entity.HasOne(d => d.Project).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.ProjectId)
+                .HasConstraintName("tickets_project_id_fkey");
+
+            entity.HasOne(d => d.Sprint).WithMany(p => p.Tickets)
+                .HasForeignKey(d => d.SprintId)
+                .OnDelete(DeleteBehavior.SetNull)
+                .HasConstraintName("tickets_sprint_id_fkey");
         });
 
         modelBuilder.Entity<User>(entity =>

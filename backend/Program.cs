@@ -72,6 +72,8 @@ builder.Services.AddScoped<IProjectService,    ProjectService>();
 builder.Services.AddScoped<IUserService,       UserService>();
 builder.Services.AddScoped<ISprintRepository,  SprintRepository>();
 builder.Services.AddScoped<ISprintService,     SprintService>();
+builder.Services.AddScoped<ITicketRepository,  TicketRepository>();
+builder.Services.AddScoped<ITicketService,     TicketService>();
 
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();

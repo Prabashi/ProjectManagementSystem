@@ -31,6 +31,13 @@ jest.mock('../../services/sprintsApi', () => ({
   useDeleteSprintMutation:    () => [jest.fn(), { isLoading: false }],
 }));
 
+jest.mock('../../services/ticketsApi', () => ({
+  useGetTicketsQuery:      () => ({ data: [], isLoading: false }),
+  useCreateTicketMutation: () => [jest.fn(), { isLoading: false }],
+  useUpdateTicketMutation: () => [jest.fn(), { isLoading: false }],
+  useDeleteTicketMutation: () => [jest.fn(), { isLoading: false }],
+}));
+
 const project = { id: 'p1', name: 'Alpha', description: 'First project', createdByUserId: 'u1', createdAt: '', updatedAt: '' };
 const members = [
   { userId: 'u1', username: 'alice', role: 'Admin', addedAt: '' },

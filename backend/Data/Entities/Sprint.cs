@@ -20,4 +20,6 @@ public partial class Sprint
     public DateTime CreatedAt { get; set; }
 
     public virtual Project Project { get; set; } = null!;
+
+    public virtual ICollection<Ticket> Tickets { get; set; } = new List<Ticket>();
 }

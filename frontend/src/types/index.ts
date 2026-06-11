@@ -22,6 +22,35 @@ export interface ProjectMember {
   addedAt: string;
 }
 
+export type TicketStatus = 'ToDo' | 'InProgress' | 'InReview' | 'ToDeploy' | 'Testing' | 'Done';
+
+export const TICKET_STATUS_LABELS: Record<TicketStatus, string> = {
+  ToDo:       'To Do',
+  InProgress: 'In Progress',
+  InReview:   'In Review',
+  ToDeploy:   'To Deploy',
+  Testing:    'Testing',
+  Done:       'Done',
+};
+
+export const TICKET_STATUSES: TicketStatus[] = ['ToDo', 'InProgress', 'InReview', 'ToDeploy', 'Testing', 'Done'];
+
+export interface Ticket {
+  id: string;
+  projectId: string;
+  sprintId?: string | null;
+  subject: string;
+  description?: string | null;
+  estimate?: number | null;
+  assigneeId?: string | null;
+  assigneeName?: string | null;
+  status: TicketStatus;
+  boardOrder: number;
+  createdByUserId: string;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface Sprint {
   id: string;
   projectId: string;
