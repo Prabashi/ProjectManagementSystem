@@ -18,6 +18,8 @@ public partial class AppDbContext : DbContext
 
     public virtual DbSet<ProjectMember> ProjectMembers { get; set; }
 
+    public virtual DbSet<Sprint> Sprints { get; set; }
+
     public virtual DbSet<User> Users { get; set; }
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -109,6 +111,35 @@ public partial class AppDbContext : DbContext
                 .HasForeignKey(d => d.UserId)
                 .OnDelete(DeleteBehavior.ClientSetNull)
                 .HasConstraintName("project_members_user_id_fkey");
+        });
+
+        modelBuilder.Entity<Sprint>(entity =>
+        {
+            entity.HasKey(e => e.Id).HasName("sprints_pkey");
+
+            entity.ToTable("sprints");
+
+            entity.HasIndex(e => e.ProjectId, "uix_sprints_one_active_per_project")
+                .IsUnique()
+                .HasFilter("(is_active = true)");
+
+            entity.Property(e => e.Id)
+                .HasDefaultValueSql("gen_random_uuid()")
+                .HasColumnName("id");
+            entity.Property(e => e.CreatedAt)
+                .HasDefaultValueSql("now()")
+                .HasColumnName("created_at");
+            entity.Property(e => e.EndDate).HasColumnName("end_date");
+            entity.Property(e => e.IsActive).HasColumnName("is_active");
+            entity.Property(e => e.Name)
+                .HasMaxLength(100)
+                .HasColumnName("name");
+            entity.Property(e => e.ProjectId).HasColumnName("project_id");
+            entity.Property(e => e.StartDate).HasColumnName("start_date");
+
+            entity.HasOne(d => d.Project).WithOne(p => p.Sprint)
+                .HasForeignKey<Sprint>(d => d.ProjectId)
+                .HasConstraintName("sprints_project_id_fkey");
         });
 
         modelBuilder.Entity<User>(entity =>

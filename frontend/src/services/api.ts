@@ -8,7 +8,7 @@ export const api = createApi({
     // credentials: 'include' is required for cross-origin requests (dev: different ports).
     credentials: 'include',
   }),
-  tagTypes: ['Project', 'ProjectMember'],
+  tagTypes: ['Project', 'ProjectMember', 'Sprint'],
   refetchOnFocus: true,
   refetchOnReconnect: true,
   endpoints: () => ({}),

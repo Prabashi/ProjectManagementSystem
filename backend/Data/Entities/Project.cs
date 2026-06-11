@@ -20,4 +20,6 @@ public partial class Project
     public virtual User CreatedByUser { get; set; } = null!;
 
     public virtual ICollection<ProjectMember> ProjectMembers { get; set; } = new List<ProjectMember>();
+
+    public virtual Sprint? Sprint { get; set; }
 }

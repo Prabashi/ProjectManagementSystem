@@ -1,4 +1,5 @@
 import { render, screen } from '@testing-library/react';
+import userEvent from '@testing-library/user-event';
 import { MemoryRouter, Route, Routes } from 'react-router-dom';
 import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
@@ -14,13 +15,20 @@ jest.mock('react-router-dom', () => ({
 }));
 
 jest.mock('../../services/projectsApi', () => ({
-  useGetProjectByIdQuery: jest.fn(),
-  useGetProjectMembersQuery: jest.fn(),
+  useGetProjectByIdQuery:     jest.fn(),
+  useGetProjectMembersQuery:  jest.fn(),
   useAddProjectMemberMutation: jest.fn(),
 }));
 
 jest.mock('../../services/usersApi', () => ({
   useGetUsersQuery: () => ({ data: [] }),
+}));
+
+jest.mock('../../services/sprintsApi', () => ({
+  useGetSprintsQuery:         () => ({ data: [], isLoading: false }),
+  useCreateSprintMutation:    () => [jest.fn(), { isLoading: false }],
+  useSetActiveSprintMutation: () => [jest.fn(), { isLoading: false }],
+  useDeleteSprintMutation:    () => [jest.fn(), { isLoading: false }],
 }));
 
 const project = { id: 'p1', name: 'Alpha', description: 'First project', createdByUserId: 'u1', createdAt: '', updatedAt: '' };
@@ -64,7 +72,7 @@ describe('ProjectDetailPage', () => {
     expect(screen.getByText('First project')).toBeInTheDocument();
   });
 
-  it('renders the member list', () => {
+  it('renders the Members tab by default with member list', () => {
     renderPage();
     expect(screen.getByText('alice')).toBeInTheDocument();
     expect(screen.getByText('bob')).toBeInTheDocument();
@@ -84,5 +92,11 @@ describe('ProjectDetailPage', () => {
     (projectsApiHooks.useGetProjectByIdQuery as jest.Mock).mockReturnValue({ data: undefined, isLoading: true });
     renderPage();
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
+  });
+
+  it('switches to Sprints tab and shows SprintPanel', async () => {
+    renderPage('Admin');
+    await userEvent.click(screen.getByRole('tab', { name: /sprints/i }));
+    expect(screen.getByRole('button', { name: /new sprint/i })).toBeInTheDocument();
   });
 });

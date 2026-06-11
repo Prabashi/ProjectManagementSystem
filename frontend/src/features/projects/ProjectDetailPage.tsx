@@ -10,6 +10,8 @@ import {
   ListItem,
   ListItemText,
   Stack,
+  Tab,
+  Tabs,
   Typography,
 } from '@mui/material';
 import ArrowBackIcon from '@mui/icons-material/ArrowBack';
@@ -18,14 +20,16 @@ import { useGetProjectByIdQuery, useGetProjectMembersQuery } from '../../service
 import { useAppSelector } from '../../app/hooks';
 import { selectUser } from '../auth/authSlice';
 import AddMemberDialog from './AddMemberDialog';
+import SprintPanel from '../sprints/SprintPanel';
 
 export default function ProjectDetailPage() {
-  const { id = '' }                   = useParams<{ id: string }>();
-  const navigate                      = useNavigate();
-  const user                          = useAppSelector(selectUser);
-  const [dialogOpen, setDialogOpen]   = useState(false);
+  const { id = '' }                 = useParams<{ id: string }>();
+  const navigate                    = useNavigate();
+  const user                        = useAppSelector(selectUser);
+  const [tab, setTab]               = useState(0);
+  const [memberDialogOpen, setMemberDialogOpen] = useState(false);
 
-  const { data: project, isLoading: projectLoading }   = useGetProjectByIdQuery(id);
+  const { data: project, isLoading: projectLoading }     = useGetProjectByIdQuery(id);
   const { data: members = [], isLoading: membersLoading } = useGetProjectMembersQuery(id);
 
   if (projectLoading) {
@@ -49,31 +53,42 @@ export default function ProjectDetailPage() {
         )}
       </Stack>
 
-      <Divider sx={{ mb: 3 }} />
+      <Divider sx={{ mb: 2 }} />
 
-      <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
-        <Typography variant="h6">Members</Typography>
-        {user?.role === 'Admin' && (
-          <Button variant="outlined" startIcon={<PersonAddIcon />} onClick={() => setDialogOpen(true)}>
-            Add member
-          </Button>
-        )}
-      </Box>
+      <Tabs value={tab} onChange={(_, v) => setTab(v)} sx={{ mb: 3 }}>
+        <Tab label="Members" />
+        <Tab label="Sprints" />
+      </Tabs>
 
-      {membersLoading ? (
-        <CircularProgress size={24} />
-      ) : (
-        <List dense>
-          {members.map((m) => (
-            <ListItem key={m.userId} disableGutters>
-              <ListItemText primary={m.username} />
-              <Chip label={m.role} size="small" variant="outlined" />
-            </ListItem>
-          ))}
-        </List>
+      {tab === 0 && (
+        <Box>
+          <Box sx={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', mb: 2 }}>
+            <Typography variant="h6">Members</Typography>
+            {user?.role === 'Admin' && (
+              <Button variant="outlined" startIcon={<PersonAddIcon />} onClick={() => setMemberDialogOpen(true)}>
+                Add member
+              </Button>
+            )}
+          </Box>
+          {membersLoading ? (
+            <CircularProgress size={24} />
+          ) : (
+            <List dense>
+              {members.map((m) => (
+                <ListItem key={m.userId} disableGutters>
+                  <ListItemText primary={m.username} />
+                  <Chip label={m.role} size="small" variant="outlined" />
+                </ListItem>
+              ))}
+            </List>
+          )}
+          <AddMemberDialog projectId={id} open={memberDialogOpen} onClose={() => setMemberDialogOpen(false)} />
+        </Box>
       )}
 
-      <AddMemberDialog projectId={id} open={dialogOpen} onClose={() => setDialogOpen(false)} />
+      {tab === 1 && (
+        <SprintPanel projectId={id} isAdmin={user?.role === 'Admin'} />
+      )}
     </Box>
   );
 }

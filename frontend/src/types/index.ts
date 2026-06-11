@@ -21,3 +21,13 @@ export interface ProjectMember {
   role: string;
   addedAt: string;
 }
+
+export interface Sprint {
+  id: string;
+  projectId: string;
+  name: string;
+  startDate?: string | null;
+  endDate?: string | null;
+  isActive: boolean;
+  createdAt: string;
+}

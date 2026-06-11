@@ -70,6 +70,8 @@ builder.Services.AddScoped<ITokenService,      TokenService>();
 builder.Services.AddScoped<IAuthService,       AuthService>();
 builder.Services.AddScoped<IProjectService,    ProjectService>();
 builder.Services.AddScoped<IUserService,       UserService>();
+builder.Services.AddScoped<ISprintRepository,  SprintRepository>();
+builder.Services.AddScoped<ISprintService,     SprintService>();
 
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
