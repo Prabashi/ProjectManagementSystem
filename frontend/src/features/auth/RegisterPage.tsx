@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -25,7 +24,7 @@ export default function RegisterPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [role, setRole] = useState<Role>('User');
-  const [register, { isLoading, error }] = useRegisterMutation();
+  const [register, { isLoading }] = useRegisterMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -35,14 +34,8 @@ export default function RegisterPage() {
       const user = await register({ username, password, role }).unwrap();
       dispatch(setUser(user));
       navigate('/');
-    } catch { /* error rendered from mutation state */ }
+    } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
-
-  const errorMessage = error
-    ? 'status' in error
-      ? ((error.data as { title?: string })?.title ?? 'Registration failed')
-      : (error.message ?? 'Registration failed')
-    : null;
 
   return (
     <Container maxWidth="xs" sx={{ mt: 12 }}>
@@ -76,7 +69,6 @@ export default function RegisterPage() {
                 <MenuItem value="Admin">Admin</MenuItem>
               </Select>
             </FormControl>
-            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
             <Button type="submit" variant="contained" disabled={isLoading} aria-label="create account">
               {isLoading ? <CircularProgress size={24} /> : 'Create account'}
             </Button>

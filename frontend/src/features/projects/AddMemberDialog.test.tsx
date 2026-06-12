@@ -48,10 +48,7 @@ describe('AddMemberDialog', () => {
     jest.clearAllMocks();
     (usersApiHooks.useGetUsersQuery as jest.Mock).mockReturnValue({ data: allUsers });
     (projectsApiHooks.useGetProjectMembersQuery as jest.Mock).mockReturnValue({ data: existingMembers });
-    (projectsApiHooks.useAddProjectMemberMutation as jest.Mock).mockReturnValue([
-      mockAddMemberFn,
-      { isLoading: false, error: undefined },
-    ]);
+    (projectsApiHooks.useAddProjectMemberMutation as jest.Mock).mockReturnValue([mockAddMemberFn, { isLoading: false }]);
   });
 
   it('renders a user dropdown filtered to non-members', () => {
@@ -84,12 +81,4 @@ describe('AddMemberDialog', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('shows error message on failure', () => {
-    (projectsApiHooks.useAddProjectMemberMutation as jest.Mock).mockReturnValue([
-      mockAddMemberFn,
-      { isLoading: false, error: { status: 400, data: { title: 'User already a member' } } },
-    ]);
-    renderDialog();
-    expect(screen.getByText('User already a member')).toBeInTheDocument();
-  });
 });

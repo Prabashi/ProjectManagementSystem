@@ -1,6 +1,5 @@
 import { useEffect, useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -40,11 +39,10 @@ export default function TicketForm({ projectId, ticket, open, onClose }: Props) 
 
   const { data: sprints  = [] } = useGetSprintsQuery(projectId);
   const { data: members  = [] } = useGetProjectMembersQuery(projectId);
-  const [createTicket, { isLoading: creating, error: createError }] = useCreateTicketMutation();
-  const [updateTicket, { isLoading: updating, error: updateError }] = useUpdateTicketMutation();
+  const [createTicket, { isLoading: creating }] = useCreateTicketMutation();
+  const [updateTicket, { isLoading: updating }] = useUpdateTicketMutation();
 
   const isLoading = creating || updating;
-  const error     = createError ?? updateError;
 
   useEffect(() => {
     if (open) {
@@ -80,14 +78,8 @@ export default function TicketForm({ projectId, ticket, open, onClose }: Props) 
         await createTicket(body).unwrap();
       }
       handleClose();
-    } catch { /* error rendered from mutation state */ }
+    } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
-
-  const errorMessage = error
-    ? 'status' in error
-      ? ((error.data as { title?: string })?.title ?? 'Failed to save ticket')
-      : (error.message ?? 'Failed to save ticket')
-    : null;
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
@@ -160,7 +152,6 @@ export default function TicketForm({ projectId, ticket, open, onClose }: Props) 
                 ))}
               </Select>
             </FormControl>
-            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
           </Stack>
         </DialogContent>
         <DialogActions>

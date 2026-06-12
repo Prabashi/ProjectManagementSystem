@@ -34,10 +34,7 @@ describe('CreateProjectDialog', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (projectsApiHooks.useCreateProjectMutation as jest.Mock).mockReturnValue([
-      mockCreateFn,
-      { isLoading: false, error: undefined },
-    ]);
+    (projectsApiHooks.useCreateProjectMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: false }]);
   });
 
   it('renders name and description fields', () => {
@@ -68,20 +65,8 @@ describe('CreateProjectDialog', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('shows error message on failure', () => {
-    (projectsApiHooks.useCreateProjectMutation as jest.Mock).mockReturnValue([
-      mockCreateFn,
-      { isLoading: false, error: { status: 400, data: { title: 'Name is required' } } },
-    ]);
-    renderDialog();
-    expect(screen.getByText('Name is required')).toBeInTheDocument();
-  });
-
   it('disables the submit button while loading', () => {
-    (projectsApiHooks.useCreateProjectMutation as jest.Mock).mockReturnValue([
-      mockCreateFn,
-      { isLoading: true, error: undefined },
-    ]);
+    (projectsApiHooks.useCreateProjectMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: true }]);
     renderDialog();
     expect(screen.getByRole('button', { name: /create project/i })).toBeDisabled();
   });

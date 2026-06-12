@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -43,7 +42,7 @@ export default function DashboardPage() {
   const { data: dashboard, isLoading, isError, error } = useGetDashboardQuery(projectId);
   const { data: members = [] }                          = useGetProjectMembersQuery(projectId);
   const [deleteTicket]                                  = useDeleteTicketMutation();
-  const [createDashboard, { isLoading: creating, error: createError }] = useCreateDashboardMutation();
+  const [createDashboard, { isLoading: creating }] = useCreateDashboardMutation();
 
   const isDashboardMissing =
     isError && error !== undefined && 'status' in error && error.status === 404;
@@ -57,14 +56,8 @@ export default function DashboardPage() {
       await createDashboard({ projectId, name: dashboardName.trim() || 'Project Dashboard' }).unwrap();
       setCreateOpen(false);
       setDashboardName('');
-    } catch { /* error shown from mutation state */ }
+    } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
-
-  const createErrorMessage = createError
-    ? 'status' in createError
-      ? ((createError.data as { title?: string })?.title ?? 'Failed to create dashboard')
-      : (createError.message ?? 'Failed to create dashboard')
-    : null;
 
   if (isLoading) {
     return (
@@ -105,7 +98,6 @@ export default function DashboardPage() {
                 autoFocus
                 slotProps={{ htmlInput: { maxLength: 100 } }}
               />
-              {createErrorMessage && <Alert severity="error">{createErrorMessage}</Alert>}
             </Stack>
           </DialogContent>
           <DialogActions>

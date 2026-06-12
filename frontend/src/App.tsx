@@ -4,6 +4,7 @@ import RegisterPage from './features/auth/RegisterPage';
 import PrivateRoute from './components/Layout/PrivateRoute';
 import MainLayout from './components/Layout/MainLayout';
 import AppInitializer from './components/AppInitializer';
+import AppSnackbar from './components/AppSnackbar';
 import ProjectListPage from './features/projects/ProjectListPage';
 import ProjectDetailPage from './features/projects/ProjectDetailPage';
 import DashboardPage from './features/dashboard/DashboardPage';
@@ -24,6 +25,7 @@ export default function App() {
         </Route>
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
+      <AppSnackbar />
     </AppInitializer>
   );
 }

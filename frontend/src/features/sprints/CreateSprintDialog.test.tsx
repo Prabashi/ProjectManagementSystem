@@ -34,10 +34,7 @@ describe('CreateSprintDialog', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (sprintsApiHooks.useCreateSprintMutation as jest.Mock).mockReturnValue([
-      mockCreateFn,
-      { isLoading: false, error: undefined },
-    ]);
+    (sprintsApiHooks.useCreateSprintMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: false }]);
   });
 
   it('renders the name and date fields', () => {
@@ -70,20 +67,8 @@ describe('CreateSprintDialog', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('shows error message on failure', () => {
-    (sprintsApiHooks.useCreateSprintMutation as jest.Mock).mockReturnValue([
-      mockCreateFn,
-      { isLoading: false, error: { status: 400, data: { title: 'Name is required' } } },
-    ]);
-    renderDialog();
-    expect(screen.getByText('Name is required')).toBeInTheDocument();
-  });
-
   it('disables the submit button while loading', () => {
-    (sprintsApiHooks.useCreateSprintMutation as jest.Mock).mockReturnValue([
-      mockCreateFn,
-      { isLoading: true, error: undefined },
-    ]);
+    (sprintsApiHooks.useCreateSprintMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: true }]);
     renderDialog();
     expect(screen.getByRole('button', { name: /create sprint/i })).toBeDisabled();
   });

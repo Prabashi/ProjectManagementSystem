@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -21,7 +20,7 @@ interface Props {
 export default function CreateProjectDialog({ open, onClose }: Props) {
   const [name, setName]               = useState('');
   const [description, setDescription] = useState('');
-  const [createProject, { isLoading, error }] = useCreateProjectMutation();
+  const [createProject, { isLoading }] = useCreateProjectMutation();
 
   const handleSubmit = async (e: React.SyntheticEvent) => {
     e.preventDefault();
@@ -30,7 +29,7 @@ export default function CreateProjectDialog({ open, onClose }: Props) {
       setName('');
       setDescription('');
       onClose();
-    } catch { /* error shown from mutation state */ }
+    } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
 
   const handleClose = () => {
@@ -38,12 +37,6 @@ export default function CreateProjectDialog({ open, onClose }: Props) {
     setDescription('');
     onClose();
   };
-
-  const errorMessage = error
-    ? 'status' in error
-      ? ((error.data as { title?: string })?.title ?? 'Failed to create project')
-      : (error.message ?? 'Failed to create project')
-    : null;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
@@ -66,7 +59,6 @@ export default function CreateProjectDialog({ open, onClose }: Props) {
               multiline
               rows={3}
             />
-            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
           </Stack>
         </DialogContent>
         <DialogActions>

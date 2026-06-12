@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -25,7 +24,7 @@ interface Props {
 
 export default function AddMemberDialog({ projectId, open, onClose }: Props) {
   const [selectedUserId, setSelectedUserId] = useState('');
-  const [addMember, { isLoading, error }]   = useAddProjectMemberMutation();
+  const [addMember, { isLoading }]          = useAddProjectMemberMutation();
   const { data: allUsers = [] }             = useGetUsersQuery();
   const { data: currentMembers = [] }       = useGetProjectMembersQuery(projectId);
 
@@ -39,19 +38,13 @@ export default function AddMemberDialog({ projectId, open, onClose }: Props) {
       await addMember({ projectId, userId: selectedUserId }).unwrap();
       setSelectedUserId('');
       onClose();
-    } catch { /* error shown from mutation state */ }
+    } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
 
   const handleClose = () => {
     setSelectedUserId('');
     onClose();
   };
-
-  const errorMessage = error
-    ? 'status' in error
-      ? ((error.data as { title?: string })?.title ?? 'Failed to add member')
-      : (error.message ?? 'Failed to add member')
-    : null;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="xs" fullWidth>
@@ -75,7 +68,6 @@ export default function AddMemberDialog({ projectId, open, onClose }: Props) {
                 ))}
               </Select>
             </FormControl>
-            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
           </Stack>
         </DialogContent>
         <DialogActions>

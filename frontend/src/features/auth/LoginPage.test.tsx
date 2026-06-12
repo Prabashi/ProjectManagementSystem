@@ -40,10 +40,7 @@ describe('LoginPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (authApiHooks.useLoginMutation as jest.Mock).mockReturnValue([
-      mockLoginFn,
-      { isLoading: false, error: undefined },
-    ]);
+    (authApiHooks.useLoginMutation as jest.Mock).mockReturnValue([mockLoginFn, { isLoading: false }]);
   });
 
   it('renders username, password fields and submit button', () => {
@@ -79,21 +76,8 @@ describe('LoginPage', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
   });
 
-  it('shows error message when login fails', () => {
-    (authApiHooks.useLoginMutation as jest.Mock).mockReturnValue([
-      mockLoginFn,
-      { isLoading: false, error: { status: 401, data: { title: 'Invalid credentials' } } },
-    ]);
-    renderLogin();
-
-    expect(screen.getByText('Invalid credentials')).toBeInTheDocument();
-  });
-
   it('disables the submit button while loading', () => {
-    (authApiHooks.useLoginMutation as jest.Mock).mockReturnValue([
-      mockLoginFn,
-      { isLoading: true, error: undefined },
-    ]);
+    (authApiHooks.useLoginMutation as jest.Mock).mockReturnValue([mockLoginFn, { isLoading: true }]);
     renderLogin();
 
     expect(screen.getByRole('button', { name: /sign in/i })).toBeDisabled();

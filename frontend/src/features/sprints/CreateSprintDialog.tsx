@@ -1,6 +1,5 @@
 import { useState } from 'react';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -23,7 +22,7 @@ export default function CreateSprintDialog({ projectId, open, onClose }: Props) 
   const [name, setName]           = useState('');
   const [startDate, setStartDate] = useState('');
   const [endDate, setEndDate]     = useState('');
-  const [createSprint, { isLoading, error }] = useCreateSprintMutation();
+  const [createSprint, { isLoading }] = useCreateSprintMutation();
 
   const handleClose = () => {
     setName('');
@@ -42,14 +41,8 @@ export default function CreateSprintDialog({ projectId, open, onClose }: Props) 
         endDate: endDate || null,
       }).unwrap();
       handleClose();
-    } catch { /* error rendered from mutation state */ }
+    } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
-
-  const errorMessage = error
-    ? 'status' in error
-      ? ((error.data as { title?: string })?.title ?? 'Failed to create sprint')
-      : (error.message ?? 'Failed to create sprint')
-    : null;
 
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
@@ -79,7 +72,6 @@ export default function CreateSprintDialog({ projectId, open, onClose }: Props) 
               onChange={(e) => setEndDate(e.target.value)}
               slotProps={{ inputLabel: { shrink: true } }}
             />
-            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
           </Stack>
         </DialogContent>
         <DialogActions>

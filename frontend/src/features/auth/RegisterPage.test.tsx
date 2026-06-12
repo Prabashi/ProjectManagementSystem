@@ -40,10 +40,7 @@ describe('RegisterPage', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (authApiHooks.useRegisterMutation as jest.Mock).mockReturnValue([
-      mockRegisterFn,
-      { isLoading: false, error: undefined },
-    ]);
+    (authApiHooks.useRegisterMutation as jest.Mock).mockReturnValue([mockRegisterFn, { isLoading: false }]);
   });
 
   it('renders username, password, role fields and submit button', () => {
@@ -84,21 +81,8 @@ describe('RegisterPage', () => {
     await waitFor(() => expect(mockNavigate).toHaveBeenCalledWith('/'));
   });
 
-  it('shows error message when registration fails', () => {
-    (authApiHooks.useRegisterMutation as jest.Mock).mockReturnValue([
-      mockRegisterFn,
-      { isLoading: false, error: { status: 400, data: { title: 'Username already taken' } } },
-    ]);
-    renderRegister();
-
-    expect(screen.getByText('Username already taken')).toBeInTheDocument();
-  });
-
   it('disables the submit button while loading', () => {
-    (authApiHooks.useRegisterMutation as jest.Mock).mockReturnValue([
-      mockRegisterFn,
-      { isLoading: true, error: undefined },
-    ]);
+    (authApiHooks.useRegisterMutation as jest.Mock).mockReturnValue([mockRegisterFn, { isLoading: true }]);
     renderRegister();
 
     expect(screen.getByRole('button', { name: /create account/i })).toBeDisabled();

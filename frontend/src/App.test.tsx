@@ -4,6 +4,7 @@ import { Provider } from 'react-redux';
 import { configureStore } from '@reduxjs/toolkit';
 import App from './App';
 import authReducer, { setUser } from './features/auth/authSlice';
+import notificationReducer from './app/notificationSlice';
 import { api } from './services/api';
 
 jest.mock('./services/authApi', () => ({
@@ -27,7 +28,7 @@ jest.mock('./services/usersApi', () => ({
 
 function makeStore(authenticated = false) {
   const store = configureStore({
-    reducer: { auth: authReducer, [api.reducerPath]: api.reducer },
+    reducer: { auth: authReducer, [api.reducerPath]: api.reducer, notification: notificationReducer },
     middleware: (gDM) => gDM().concat(api.middleware),
   });
   if (authenticated) {

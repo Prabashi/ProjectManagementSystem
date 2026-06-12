@@ -1,7 +1,6 @@
 import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
-  Alert,
   Box,
   Button,
   CircularProgress,
@@ -19,7 +18,7 @@ import { setUser } from './authSlice';
 export default function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
-  const [login, { isLoading, error }] = useLoginMutation();
+  const [login, { isLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
@@ -29,14 +28,8 @@ export default function LoginPage() {
       const user = await login({ username, password }).unwrap();
       dispatch(setUser(user));
       navigate('/');
-    } catch { /* error rendered from mutation state */ }
+    } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
-
-  const errorMessage = error
-    ? 'status' in error
-      ? ((error.data as { title?: string })?.title ?? 'Login failed')
-      : (error.message ?? 'Login failed')
-    : null;
 
   return (
     <Container maxWidth="xs" sx={{ mt: 12 }}>
@@ -58,7 +51,6 @@ export default function LoginPage() {
               onChange={(e) => setPassword(e.target.value)}
               required
             />
-            {errorMessage && <Alert severity="error">{errorMessage}</Alert>}
             <Button type="submit" variant="contained" disabled={isLoading} aria-label="sign in">
               {isLoading ? <CircularProgress size={24} /> : 'Sign in'}
             </Button>

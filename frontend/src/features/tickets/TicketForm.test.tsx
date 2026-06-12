@@ -47,8 +47,8 @@ describe('TicketForm', () => {
 
   beforeEach(() => {
     jest.clearAllMocks();
-    (ticketsApiHooks.useCreateTicketMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: false, error: undefined }]);
-    (ticketsApiHooks.useUpdateTicketMutation as jest.Mock).mockReturnValue([mockUpdateFn, { isLoading: false, error: undefined }]);
+    (ticketsApiHooks.useCreateTicketMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: false }]);
+    (ticketsApiHooks.useUpdateTicketMutation as jest.Mock).mockReturnValue([mockUpdateFn, { isLoading: false }]);
   });
 
   it('renders "New ticket" title in create mode', () => {
@@ -91,20 +91,8 @@ describe('TicketForm', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
-  it('shows error message on failure', () => {
-    (ticketsApiHooks.useCreateTicketMutation as jest.Mock).mockReturnValue([
-      mockCreateFn,
-      { isLoading: false, error: { status: 400, data: { title: 'Subject is required' } } },
-    ]);
-    renderForm();
-    expect(screen.getByText('Subject is required')).toBeInTheDocument();
-  });
-
   it('disables submit button while loading', () => {
-    (ticketsApiHooks.useCreateTicketMutation as jest.Mock).mockReturnValue([
-      mockCreateFn,
-      { isLoading: true, error: undefined },
-    ]);
+    (ticketsApiHooks.useCreateTicketMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: true }]);
     renderForm();
     expect(screen.getByRole('button', { name: /create ticket/i })).toBeDisabled();
   });
