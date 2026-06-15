@@ -67,6 +67,23 @@ describe('CreateSprintDialog', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
+  it('shows validation error when name is empty', async () => {
+    renderDialog();
+    await userEvent.click(screen.getByRole('button', { name: /create sprint/i }));
+    expect(screen.getByText('Name is required')).toBeInTheDocument();
+    expect(mockCreateFn).not.toHaveBeenCalled();
+  });
+
+  it('shows validation error when end date is before start date', async () => {
+    renderDialog();
+    await userEvent.type(screen.getByRole('textbox', { name: /name/i }), 'Sprint 1');
+    await userEvent.type(screen.getByLabelText(/start date/i), '2025-06-10');
+    await userEvent.type(screen.getByLabelText(/end date/i), '2025-06-01');
+    await userEvent.click(screen.getByRole('button', { name: /create sprint/i }));
+    expect(screen.getByText('End date must be after start date')).toBeInTheDocument();
+    expect(mockCreateFn).not.toHaveBeenCalled();
+  });
+
   it('disables the submit button while loading', () => {
     (sprintsApiHooks.useCreateSprintMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: true }]);
     renderDialog();

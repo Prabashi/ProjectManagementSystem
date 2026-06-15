@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import { Link as RouterLink, useNavigate } from 'react-router-dom';
 import {
   Box,
@@ -11,48 +10,61 @@ import {
   TextField,
   Typography,
 } from '@mui/material';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useLoginMutation } from '../../services/authApi';
 import { useAppDispatch } from '../../app/hooks';
 import { setUser } from './authSlice';
 
+const schema = z.object({
+  username: z.string().min(1, 'Username is required'),
+  password: z.string().min(1, 'Password is required'),
+});
+type FormValues = z.infer<typeof schema>;
+
 export default function LoginPage() {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
+  const { register, handleSubmit, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { username: '', password: '' },
+    reValidateMode: 'onChange',
+  });
   const [login, { isLoading }] = useLoginMutation();
   const dispatch = useAppDispatch();
   const navigate = useNavigate();
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormValues) => {
     try {
-      const user = await login({ username, password }).unwrap();
+      const user = await login({ username: data.username, password: data.password }).unwrap();
       dispatch(setUser(user));
       navigate('/');
     } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
 
+  const busy = isLoading || isSubmitting;
+
   return (
     <Container maxWidth="xs" sx={{ mt: 12 }}>
       <Paper sx={{ p: 4 }}>
         <Typography variant="h5" gutterBottom>Sign in</Typography>
-        <Box component="form" onSubmit={handleSubmit}>
+        <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
           <Stack spacing={2}>
             <TextField
               label="Username"
-              value={username}
-              onChange={(e) => setUsername(e.target.value)}
-              required
+              {...register('username')}
+              error={!!errors.username}
+              helperText={errors.username?.message}
               autoFocus
             />
             <TextField
               label="Password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              required
+              {...register('password')}
+              error={!!errors.password}
+              helperText={errors.password?.message}
             />
-            <Button type="submit" variant="contained" disabled={isLoading} aria-label="sign in">
-              {isLoading ? <CircularProgress size={24} /> : 'Sign in'}
+            <Button type="submit" variant="contained" disabled={busy} aria-label="sign in">
+              {busy ? <CircularProgress size={24} /> : 'Sign in'}
             </Button>
           </Stack>
         </Box>

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect } from 'react';
 import {
   Box,
   Button,
@@ -14,11 +14,28 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
+import { useForm, Controller } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useGetSprintsQuery } from '../../services/sprintsApi';
 import { useGetProjectMembersQuery } from '../../services/projectsApi';
 import { useCreateTicketMutation, useUpdateTicketMutation } from '../../services/ticketsApi';
 import type { Ticket, TicketStatus } from '../../types';
 import { TICKET_STATUS_LABELS, TICKET_STATUSES } from '../../types';
+
+const schema = z.object({
+  subject:     z.string().min(1, 'Subject is required').max(200),
+  description: z.string(),
+  estimate:    z.string().refine((v) => !v || parseFloat(v) >= 0, 'Estimate must be 0 or greater'),
+  status:      z.string(),
+  sprintId:    z.string(),
+  assigneeId:  z.string(),
+});
+type FormValues = z.infer<typeof schema>;
+
+const defaultValues: FormValues = {
+  subject: '', description: '', estimate: '', status: 'ToDo', sprintId: '', assigneeId: '',
+};
 
 interface Props {
   projectId: string;
@@ -30,45 +47,42 @@ interface Props {
 export default function TicketForm({ projectId, ticket, open, onClose }: Props) {
   const isEdit = Boolean(ticket);
 
-  const [subject,     setSubject]     = useState('');
-  const [description, setDescription] = useState('');
-  const [estimate,    setEstimate]    = useState('');
-  const [assigneeId,  setAssigneeId]  = useState('');
-  const [sprintId,    setSprintId]    = useState('');
-  const [status,      setStatus]      = useState<TicketStatus>('ToDo');
+  const { register, handleSubmit, control, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues,
+    reValidateMode: 'onChange',
+  });
 
-  const { data: sprints  = [] } = useGetSprintsQuery(projectId);
-  const { data: members  = [] } = useGetProjectMembersQuery(projectId);
+  const { data: sprints = [] } = useGetSprintsQuery(projectId);
+  const { data: members = [] } = useGetProjectMembersQuery(projectId);
   const [createTicket, { isLoading: creating }] = useCreateTicketMutation();
   const [updateTicket, { isLoading: updating }] = useUpdateTicketMutation();
 
   const isLoading = creating || updating;
+  const busy      = isLoading || isSubmitting;
 
   useEffect(() => {
     if (open) {
-      setSubject(ticket?.subject ?? '');
-      setDescription(ticket?.description ?? '');
-      setEstimate(ticket?.estimate?.toString() ?? '');
-      setAssigneeId(ticket?.assigneeId ?? '');
-      setSprintId(ticket?.sprintId ?? '');
-      setStatus(ticket?.status ?? 'ToDo');
+      reset({
+        subject:     ticket?.subject     ?? '',
+        description: ticket?.description ?? '',
+        estimate:    ticket?.estimate?.toString() ?? '',
+        status:      ticket?.status      ?? 'ToDo',
+        sprintId:    ticket?.sprintId    ?? '',
+        assigneeId:  ticket?.assigneeId  ?? '',
+      });
     }
-  }, [open, ticket]);
+  }, [open, ticket, reset]);
 
-  const handleClose = () => {
-    onClose();
-  };
-
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormValues) => {
     const body = {
       projectId,
-      subject,
-      description: description || null,
-      estimate:    estimate ? parseFloat(estimate) : null,
-      assigneeId:  assigneeId || null,
-      sprintId:    sprintId || null,
-      status,
+      subject:     data.subject,
+      description: data.description || null,
+      estimate:    data.estimate ? parseFloat(data.estimate) : null,
+      assigneeId:  data.assigneeId || null,
+      sprintId:    data.sprintId   || null,
+      status:      data.status as TicketStatus,
     };
 
     try {
@@ -77,87 +91,89 @@ export default function TicketForm({ projectId, ticket, open, onClose }: Props) 
       } else {
         await createTicket(body).unwrap();
       }
-      handleClose();
+      onClose();
     } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
 
   return (
-    <Dialog open={open} onClose={handleClose} fullWidth maxWidth="sm">
+    <Dialog open={open} onClose={onClose} fullWidth maxWidth="sm">
       <DialogTitle>{isEdit ? 'Edit ticket' : 'New ticket'}</DialogTitle>
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
           <Stack spacing={2}>
             <TextField
               label="Subject"
-              value={subject}
-              onChange={(e) => setSubject(e.target.value)}
+              {...register('subject')}
+              error={!!errors.subject}
+              helperText={errors.subject?.message}
               required
               autoFocus
               slotProps={{ htmlInput: { maxLength: 200 } }}
             />
             <TextField
               label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              {...register('description')}
               multiline
               minRows={2}
             />
             <TextField
               label="Estimate (points)"
               type="number"
-              value={estimate}
-              onChange={(e) => setEstimate(e.target.value)}
+              {...register('estimate')}
+              error={!!errors.estimate}
+              helperText={errors.estimate?.message}
               slotProps={{ htmlInput: { min: 0, step: 0.5 } }}
             />
-            <FormControl required>
-              <InputLabel id="status-label">Status</InputLabel>
-              <Select
-                labelId="status-label"
-                label="Status"
-                value={status}
-                onChange={(e) => setStatus(e.target.value as TicketStatus)}
-              >
-                {TICKET_STATUSES.map((s) => (
-                  <MenuItem key={s} value={s}>{TICKET_STATUS_LABELS[s]}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl>
-              <InputLabel id="sprint-label" shrink>Sprint</InputLabel>
-              <Select
-                labelId="sprint-label"
-                label="Sprint"
-                value={sprintId}
-                onChange={(e) => setSprintId(e.target.value)}
-                displayEmpty
-              >
-                <MenuItem value="">Backlog</MenuItem>
-                {sprints.map((s) => (
-                  <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
-            <FormControl>
-              <InputLabel id="assignee-label" shrink>Assignee</InputLabel>
-              <Select
-                labelId="assignee-label"
-                label="Assignee"
-                value={assigneeId}
-                onChange={(e) => setAssigneeId(e.target.value)}
-                displayEmpty
-              >
-                <MenuItem value="">Unassigned</MenuItem>
-                {members.map((m) => (
-                  <MenuItem key={m.userId} value={m.userId}>{m.username}</MenuItem>
-                ))}
-              </Select>
-            </FormControl>
+            <Controller
+              name="status"
+              control={control}
+              render={({ field }) => (
+                <FormControl required>
+                  <InputLabel id="status-label">Status</InputLabel>
+                  <Select {...field} labelId="status-label" label="Status">
+                    {TICKET_STATUSES.map((s) => (
+                      <MenuItem key={s} value={s}>{TICKET_STATUS_LABELS[s]}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            />
+            <Controller
+              name="sprintId"
+              control={control}
+              render={({ field }) => (
+                <FormControl>
+                  <InputLabel id="sprint-label" shrink>Sprint</InputLabel>
+                  <Select {...field} labelId="sprint-label" label="Sprint" displayEmpty>
+                    <MenuItem value="">Backlog</MenuItem>
+                    {sprints.map((s) => (
+                      <MenuItem key={s.id} value={s.id}>{s.name}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            />
+            <Controller
+              name="assigneeId"
+              control={control}
+              render={({ field }) => (
+                <FormControl>
+                  <InputLabel id="assignee-label" shrink>Assignee</InputLabel>
+                  <Select {...field} labelId="assignee-label" label="Assignee" displayEmpty>
+                    <MenuItem value="">Unassigned</MenuItem>
+                    {members.map((m) => (
+                      <MenuItem key={m.userId} value={m.userId}>{m.username}</MenuItem>
+                    ))}
+                  </Select>
+                </FormControl>
+              )}
+            />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={isLoading} aria-label={isEdit ? 'save ticket' : 'create ticket'}>
-            {isLoading ? <CircularProgress size={20} /> : isEdit ? 'Save' : 'Create ticket'}
+          <Button onClick={onClose}>Cancel</Button>
+          <Button type="submit" variant="contained" disabled={busy} aria-label={isEdit ? 'save ticket' : 'create ticket'}>
+            {busy ? <CircularProgress size={20} /> : isEdit ? 'Save' : 'Create ticket'}
           </Button>
         </DialogActions>
       </Box>

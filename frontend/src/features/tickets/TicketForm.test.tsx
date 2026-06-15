@@ -91,6 +91,21 @@ describe('TicketForm', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
+  it('shows validation error when subject is empty', async () => {
+    renderForm();
+    await userEvent.click(screen.getByRole('button', { name: /create ticket/i }));
+    expect(screen.getByText('Subject is required')).toBeInTheDocument();
+    expect(mockCreateFn).not.toHaveBeenCalled();
+  });
+
+  it('shows validation error when estimate is negative', async () => {
+    renderForm();
+    await userEvent.type(screen.getByRole('spinbutton', { name: /estimate/i }), '-1');
+    await userEvent.click(screen.getByRole('button', { name: /create ticket/i }));
+    expect(screen.getByText('Estimate must be 0 or greater')).toBeInTheDocument();
+    expect(mockCreateFn).not.toHaveBeenCalled();
+  });
+
   it('disables submit button while loading', () => {
     (ticketsApiHooks.useCreateTicketMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: true }]);
     renderForm();

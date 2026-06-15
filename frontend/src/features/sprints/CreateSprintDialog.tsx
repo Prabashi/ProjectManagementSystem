@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Box,
   Button,
@@ -10,7 +9,20 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useCreateSprintMutation } from '../../services/sprintsApi';
+
+const schema = z.object({
+  name:      z.string().min(1, 'Name is required').max(100),
+  startDate: z.string(),
+  endDate:   z.string(),
+}).refine(
+  ({ startDate, endDate }) => !(startDate && endDate && endDate < startDate),
+  { message: 'End date must be after start date', path: ['endDate'] },
+);
+type FormValues = z.infer<typeof schema>;
 
 interface Props {
   projectId: string;
@@ -19,41 +31,43 @@ interface Props {
 }
 
 export default function CreateSprintDialog({ projectId, open, onClose }: Props) {
-  const [name, setName]           = useState('');
-  const [startDate, setStartDate] = useState('');
-  const [endDate, setEndDate]     = useState('');
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: '', startDate: '', endDate: '' },
+    reValidateMode: 'onChange',
+  });
   const [createSprint, { isLoading }] = useCreateSprintMutation();
 
   const handleClose = () => {
-    setName('');
-    setStartDate('');
-    setEndDate('');
+    reset();
     onClose();
   };
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const onSubmit = async (data: FormValues) => {
     try {
       await createSprint({
         projectId,
-        name,
-        startDate: startDate || null,
-        endDate: endDate || null,
+        name:      data.name,
+        startDate: data.startDate || null,
+        endDate:   data.endDate   || null,
       }).unwrap();
       handleClose();
     } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
 
+  const busy = isLoading || isSubmitting;
+
   return (
     <Dialog open={open} onClose={handleClose} fullWidth maxWidth="xs">
       <DialogTitle>New sprint</DialogTitle>
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
           <Stack spacing={2}>
             <TextField
               label="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...register('name')}
+              error={!!errors.name}
+              helperText={errors.name?.message}
               required
               autoFocus
               slotProps={{ htmlInput: { maxLength: 100 } }}
@@ -61,23 +75,23 @@ export default function CreateSprintDialog({ projectId, open, onClose }: Props) 
             <TextField
               label="Start date"
               type="date"
-              value={startDate}
-              onChange={(e) => setStartDate(e.target.value)}
+              {...register('startDate')}
               slotProps={{ inputLabel: { shrink: true } }}
             />
             <TextField
               label="End date"
               type="date"
-              value={endDate}
-              onChange={(e) => setEndDate(e.target.value)}
+              {...register('endDate')}
+              error={!!errors.endDate}
+              helperText={errors.endDate?.message}
               slotProps={{ inputLabel: { shrink: true } }}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
           <Button onClick={handleClose}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={isLoading} aria-label="create sprint">
-            {isLoading ? <CircularProgress size={20} /> : 'Create sprint'}
+          <Button type="submit" variant="contained" disabled={busy} aria-label="create sprint">
+            {busy ? <CircularProgress size={20} /> : 'Create sprint'}
           </Button>
         </DialogActions>
       </Box>

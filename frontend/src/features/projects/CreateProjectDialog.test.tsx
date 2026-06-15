@@ -65,6 +65,13 @@ describe('CreateProjectDialog', () => {
     await waitFor(() => expect(onClose).toHaveBeenCalled());
   });
 
+  it('shows validation error when name is empty', async () => {
+    renderDialog();
+    await userEvent.click(screen.getByRole('button', { name: /create project/i }));
+    expect(screen.getByText('Name is required')).toBeInTheDocument();
+    expect(mockCreateFn).not.toHaveBeenCalled();
+  });
+
   it('disables the submit button while loading', () => {
     (projectsApiHooks.useCreateProjectMutation as jest.Mock).mockReturnValue([mockCreateFn, { isLoading: true }]);
     renderDialog();

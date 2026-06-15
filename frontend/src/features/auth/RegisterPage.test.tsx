@@ -88,6 +88,14 @@ describe('RegisterPage', () => {
     expect(screen.getByRole('button', { name: /create account/i })).toBeDisabled();
   });
 
+  it('shows validation errors when submitting empty fields', async () => {
+    renderRegister();
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
+    expect(screen.getByText('Username is required')).toBeInTheDocument();
+    expect(screen.getByText('Password is required')).toBeInTheDocument();
+    expect(mockRegisterFn).not.toHaveBeenCalled();
+  });
+
   it('shows a link to the login page', () => {
     renderRegister();
     expect(screen.getByRole('link', { name: /sign in/i })).toBeInTheDocument();

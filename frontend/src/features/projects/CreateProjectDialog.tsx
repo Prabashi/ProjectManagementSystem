@@ -1,4 +1,3 @@
-import { useState } from 'react';
 import {
   Box,
   Button,
@@ -10,7 +9,16 @@ import {
   Stack,
   TextField,
 } from '@mui/material';
+import { useForm } from 'react-hook-form';
+import { zodResolver } from '@hookform/resolvers/zod';
+import { z } from 'zod';
 import { useCreateProjectMutation } from '../../services/projectsApi';
+
+const schema = z.object({
+  name:        z.string().min(1, 'Name is required').max(100),
+  description: z.string(),
+});
+type FormValues = z.infer<typeof schema>;
 
 interface Props {
   open: boolean;
@@ -18,53 +26,54 @@ interface Props {
 }
 
 export default function CreateProjectDialog({ open, onClose }: Props) {
-  const [name, setName]               = useState('');
-  const [description, setDescription] = useState('');
+  const { register, handleSubmit, reset, formState: { errors, isSubmitting } } = useForm<FormValues>({
+    resolver: zodResolver(schema),
+    defaultValues: { name: '', description: '' },
+    reValidateMode: 'onChange',
+  });
   const [createProject, { isLoading }] = useCreateProjectMutation();
 
-  const handleSubmit = async (e: React.SyntheticEvent) => {
-    e.preventDefault();
+  const handleClose = () => {
+    reset();
+    onClose();
+  };
+
+  const onSubmit = async (data: FormValues) => {
     try {
-      await createProject({ name, description: description || undefined }).unwrap();
-      setName('');
-      setDescription('');
-      onClose();
+      await createProject({ name: data.name, description: data.description || undefined }).unwrap();
+      handleClose();
     } catch { /* error handled globally via rtkQueryErrorMiddleware */ }
   };
 
-  const handleClose = () => {
-    setName('');
-    setDescription('');
-    onClose();
-  };
+  const busy = isLoading || isSubmitting;
 
   return (
     <Dialog open={open} onClose={handleClose} maxWidth="sm" fullWidth>
       <DialogTitle>New project</DialogTitle>
-      <Box component="form" onSubmit={handleSubmit}>
+      <Box component="form" onSubmit={handleSubmit(onSubmit)} noValidate>
         <DialogContent>
           <Stack spacing={2} sx={{ mt: 1 }}>
             <TextField
               label="Name"
-              value={name}
-              onChange={(e) => setName(e.target.value)}
+              {...register('name')}
+              error={!!errors.name}
+              helperText={errors.name?.message}
               required
               autoFocus
               slotProps={{ htmlInput: { maxLength: 100 } }}
             />
             <TextField
               label="Description"
-              value={description}
-              onChange={(e) => setDescription(e.target.value)}
+              {...register('description')}
               multiline
               rows={3}
             />
           </Stack>
         </DialogContent>
         <DialogActions>
-          <Button onClick={handleClose} disabled={isLoading}>Cancel</Button>
-          <Button type="submit" variant="contained" disabled={isLoading} aria-label="create project">
-            {isLoading ? <CircularProgress size={20} /> : 'Create'}
+          <Button onClick={handleClose} disabled={busy}>Cancel</Button>
+          <Button type="submit" variant="contained" disabled={busy} aria-label="create project">
+            {busy ? <CircularProgress size={20} /> : 'Create'}
           </Button>
         </DialogActions>
       </Box>

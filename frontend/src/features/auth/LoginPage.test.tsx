@@ -83,6 +83,22 @@ describe('LoginPage', () => {
     expect(screen.getByRole('button', { name: /sign in/i })).toBeDisabled();
   });
 
+  it('shows validation errors when submitting empty fields', async () => {
+    renderLogin();
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    expect(screen.getByText('Username is required')).toBeInTheDocument();
+    expect(screen.getByText('Password is required')).toBeInTheDocument();
+    expect(mockLoginFn).not.toHaveBeenCalled();
+  });
+
+  it('clears field error when the user starts typing', async () => {
+    renderLogin();
+    await userEvent.click(screen.getByRole('button', { name: /sign in/i }));
+    expect(screen.getByText('Username is required')).toBeInTheDocument();
+    await userEvent.type(screen.getByRole('textbox', { name: /username/i }), 'a');
+    expect(screen.queryByText('Username is required')).not.toBeInTheDocument();
+  });
+
   it('shows a link to the register page', () => {
     renderLogin();
     expect(screen.getByRole('link', { name: /create one/i })).toBeInTheDocument();
