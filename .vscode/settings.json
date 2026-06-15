@@ -1,0 +1,11 @@
+{
+  // Official Cucumber extension (publisher: cucumber)
+  "cucumber.glue": [
+    "frontend/e2e/steps/**/*.ts",
+    "frontend/e2e/support/world.ts",
+    "frontend/e2e/support/hooks.ts"
+  ],
+  "cucumber.features": [
+    "frontend/e2e/features/**/*.feature"
+  ],
+}
