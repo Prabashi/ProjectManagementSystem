@@ -51,11 +51,82 @@ Frontend runs at **http://localhost:5173**.
 dotnet test
 ```
 
-**Frontend** (from `frontend/`):
+**Frontend unit tests** (from `frontend/`):
 
 ```bash
 npm test
 ```
+
+**E2E tests — Cucumber + Playwright** (from `frontend/`):
+
+E2E tests require the full stack to be running before executing the suite.
+
+### 1. First-time browser install
+
+```bash
+cd frontend
+npx playwright install chromium
+```
+
+This only needs to be done once per machine.
+
+### 2. Start the full stack
+
+**Option A — Docker for everything except the frontend dev server (recommended for E2E):**
+
+```bash
+# From the monorepo root — starts db, runs migrations, and starts the API
+docker compose -f docker-compose.fullstack.yml up
+
+# In a separate terminal, from frontend/
+npm run dev
+```
+
+**Option B — Manual (already running locally):**
+
+Make sure all three are running:
+- `docker compose up` (PostgreSQL + migrations)
+- `dotnet run` from `backend/` (API on http://localhost:5231)
+- `npm run dev` from `frontend/` (frontend on http://localhost:5173)
+
+### 3. Run the tests
+
+```bash
+# From frontend/ — headless (default, suitable for CI)
+npm run e2e
+
+# With a visible browser window (useful for debugging)
+npm run e2e:headed
+```
+
+### Environment variables
+
+| Variable | Default | Description |
+|---|---|---|
+| `BASE_URL` | `http://localhost:5173` | Frontend URL |
+| `API_URL` | `http://localhost:5231/api` | Backend API URL |
+
+Override them inline if your ports differ:
+
+```bash
+BASE_URL=http://localhost:4173 API_URL=http://localhost:5000/api npm run e2e
+```
+
+### Test output
+
+- **Pass/fail** results are printed to the terminal.
+- **Screenshots** on failure are saved to `frontend/e2e/reports/screenshots/`.
+
+### Feature coverage
+
+| Feature file | Scenario |
+|---|---|
+| `auth.feature` | User logs in with valid credentials |
+| `projects.feature` | Admin creates a new project |
+| `members.feature` | Admin adds a member to a project |
+| `sprints.feature` | Admin creates a sprint |
+| `tickets.feature` | User creates a new ticket |
+| `dashboard.feature` | Admin creates a dashboard |
 
 ---
 
