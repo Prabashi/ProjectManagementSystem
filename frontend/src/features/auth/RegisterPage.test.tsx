@@ -96,6 +96,13 @@ describe('RegisterPage', () => {
     expect(mockRegisterFn).not.toHaveBeenCalled();
   });
 
+  it('shows password length error when password is too short', async () => {
+    renderRegister();
+    await userEvent.type(screen.getByLabelText(/password/i), 'short');
+    await userEvent.click(screen.getByRole('button', { name: /create account/i }));
+    expect(screen.getByText('Password must be at least 8 characters')).toBeInTheDocument();
+  });
+
   it('shows a link to the login page', () => {
     renderRegister();
     expect(screen.getByRole('link', { name: /sign in/i })).toBeInTheDocument();

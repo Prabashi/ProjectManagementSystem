@@ -77,7 +77,9 @@ export default function TicketListPanel({ projectId, isAdmin }: Props) {
       </Stack>
 
       {filteredTickets.length === 0 ? (
-        <Typography color="text.secondary">No tickets found.</Typography>
+        <Typography color="text.secondary">
+          {tickets.length === 0 ? 'No tickets yet.' : 'No tickets match this filter.'}
+        </Typography>
       ) : (
         <Stack spacing={1}>
           {filteredTickets.map((ticket) => (

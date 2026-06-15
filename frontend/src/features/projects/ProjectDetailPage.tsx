@@ -80,6 +80,8 @@ export default function ProjectDetailPage() {
           </Box>
           {membersLoading ? (
             <CircularProgress size={24} />
+          ) : members.length === 0 ? (
+            <Typography color="text.secondary">No members yet.</Typography>
           ) : (
             <List dense>
               {members.map((m) => (

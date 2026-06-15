@@ -95,6 +95,12 @@ describe('ProjectDetailPage', () => {
     expect(screen.queryByRole('button', { name: /add member/i })).not.toBeInTheDocument();
   });
 
+  it('shows empty state when there are no members', () => {
+    (projectsApiHooks.useGetProjectMembersQuery as jest.Mock).mockReturnValue({ data: [], isLoading: false });
+    renderPage();
+    expect(screen.getByText('No members yet.')).toBeInTheDocument();
+  });
+
   it('shows loading spinner while fetching project', () => {
     (projectsApiHooks.useGetProjectByIdQuery as jest.Mock).mockReturnValue({ data: undefined, isLoading: true });
     renderPage();

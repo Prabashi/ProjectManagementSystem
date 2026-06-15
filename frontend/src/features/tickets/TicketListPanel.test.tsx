@@ -72,10 +72,23 @@ describe('TicketListPanel', () => {
     expect(screen.getByRole('progressbar')).toBeInTheDocument();
   });
 
-  it('shows empty state when no tickets match filter', () => {
+  it('shows "No tickets yet." when there are no tickets at all', () => {
     (ticketsApiHooks.useGetTicketsQuery as jest.Mock).mockReturnValue({ data: [], isLoading: false });
     renderPanel();
-    expect(screen.getByText(/no tickets found/i)).toBeInTheDocument();
+    expect(screen.getByText('No tickets yet.')).toBeInTheDocument();
+  });
+
+  it('shows "No tickets match this filter." when filtering yields no results', async () => {
+    // All tickets are in a sprint — filtering to Backlog yields nothing
+    (ticketsApiHooks.useGetTicketsQuery as jest.Mock).mockReturnValue({
+      data: [{ ...tickets[0] }, { ...tickets[1], sprintId: 's1' }],
+      isLoading: false,
+    });
+    renderPanel();
+    const select = screen.getByRole('combobox', { name: /sprint/i });
+    await userEvent.click(select);
+    await userEvent.click(screen.getByRole('option', { name: /backlog/i }));
+    expect(screen.getByText('No tickets match this filter.')).toBeInTheDocument();
   });
 
   it('calls deleteTicket mutation when delete is clicked (Admin)', async () => {
