@@ -1,5 +1,13 @@
 services:
 
+  redis:
+    image: redis:7-alpine
+    healthcheck:
+      test:     ["CMD", "redis-cli", "ping"]
+      interval: 5s
+      timeout:  3s
+      retries:  5
+
   db:
     image: postgres:17
     environment:
@@ -36,6 +44,8 @@ services:
     depends_on:
       migrate:
         condition: service_completed_successfully
+      redis:
+        condition: service_healthy
 
 volumes:
   pgdata:

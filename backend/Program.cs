@@ -9,6 +9,7 @@ using ProjectManagementSystem.Hubs;
 using ProjectManagementSystem.Middleware;
 using ProjectManagementSystem.Repositories;
 using ProjectManagementSystem.Services;
+using StackExchange.Redis;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -56,7 +57,11 @@ builder.Services.AddCors(options =>
               .AllowCredentials()));
 
 // ── SignalR ───────────────────────────────────────────────────────────────────
-builder.Services.AddSignalR();
+builder.Services
+    .AddSignalR()
+    .AddStackExchangeRedis(
+        builder.Configuration.GetConnectionString("Redis")!,
+        options => options.Configuration.ChannelPrefix = RedisChannel.Literal("pms"));
 
 // ── MVC + OpenAPI ─────────────────────────────────────────────────────────────
 builder.Services.AddControllers();
