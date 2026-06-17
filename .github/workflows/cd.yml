@@ -1,0 +1,126 @@
+name: CD
+
+on:
+  workflow_run:
+    workflows: [CI]
+    branches: [main]
+    types: [completed]
+
+jobs:
+  build:
+    name: Build & push images
+    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+    outputs:
+      backend-image:  ${{ steps.push-backend.outputs.image }}
+      frontend-image: ${{ steps.push-frontend.outputs.image }}
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region:    ${{ secrets.AWS_REGION }}
+
+      - name: Log in to ECR
+        id: login-ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - name: Build and push backend
+        id: push-backend
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          IMAGE=$REGISTRY/${{ secrets.ECR_BACKEND_REPO }}:${{ github.sha }}
+          docker build -t "$IMAGE" ./backend
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+
+      - name: Build and push frontend
+        id: push-frontend
+        env:
+          REGISTRY: ${{ steps.login-ecr.outputs.registry }}
+        run: |
+          IMAGE=$REGISTRY/${{ secrets.ECR_FRONTEND_REPO }}:${{ github.sha }}
+          docker build -t "$IMAGE" ./frontend
+          docker push "$IMAGE"
+          echo "image=$IMAGE" >> $GITHUB_OUTPUT
+
+  deploy:
+    name: Migrate & deploy
+    needs: build
+    runs-on: ubuntu-latest
+    permissions:
+      id-token: write
+      contents: read
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          role-to-assume: ${{ secrets.AWS_ROLE_ARN }}
+          aws-region:    ${{ secrets.AWS_REGION }}
+
+      # Requires the GitHub Actions runner to have network access to RDS.
+      # Either make RDS publicly accessible (restrict to GitHub IP ranges via security group),
+      # or use a self-hosted runner deployed inside the same VPC.
+      - name: Run database migrations
+        run: |
+          docker run --rm \
+            -v "$(pwd)/backend/sql:/flyway/sql" \
+            flyway/flyway:11 \
+            -url="${{ secrets.DB_JDBC_URL }}" \
+            -user="${{ secrets.DB_USER }}" \
+            -password="${{ secrets.DB_PASSWORD }}" \
+            migrate
+
+      - name: Download backend task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ secrets.ECS_BACKEND_TASK_DEF }} \
+            --query taskDefinition > backend-task-def.json
+
+      - name: Render backend task definition
+        id: render-backend
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition:  backend-task-def.json
+          container-name:   api
+          image:            ${{ needs.build.outputs.backend-image }}
+
+      - name: Deploy backend
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition:          ${{ steps.render-backend.outputs.task-definition }}
+          service:                  ${{ secrets.ECS_BACKEND_SERVICE }}
+          cluster:                  ${{ secrets.ECS_CLUSTER }}
+          wait-for-service-stability: true
+
+      - name: Download frontend task definition
+        run: |
+          aws ecs describe-task-definition \
+            --task-definition ${{ secrets.ECS_FRONTEND_TASK_DEF }} \
+            --query taskDefinition > frontend-task-def.json
+
+      - name: Render frontend task definition
+        id: render-frontend
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition:  frontend-task-def.json
+          container-name:   frontend
+          image:            ${{ needs.build.outputs.frontend-image }}
+
+      - name: Deploy frontend
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v2
+        with:
+          task-definition:          ${{ steps.render-frontend.outputs.task-definition }}
+          service:                  ${{ secrets.ECS_FRONTEND_SERVICE }}
+          cluster:                  ${{ secrets.ECS_CLUSTER }}
+          wait-for-service-stability: true
