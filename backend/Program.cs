@@ -1,6 +1,7 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Distributed;
 using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
 using ProjectManagementSystem.BackgroundServices;
@@ -72,8 +73,14 @@ builder.Services.AddExceptionHandler<GlobalExceptionHandler>();
 builder.Services.AddProblemDetails();
 
 // ── Application services ──────────────────────────────────────────────────────
-builder.Services.AddScoped<IUserRepository,    UserRepository>();
-builder.Services.AddScoped<IProjectRepository, ProjectRepository>();
+builder.Services.AddStackExchangeRedisCache(options =>
+    options.Configuration = builder.Configuration.GetConnectionString("Redis"));
+
+builder.Services.AddScoped<IUserRepository, UserRepository>();
+builder.Services.AddScoped<ProjectRepository>();
+builder.Services.AddScoped<IProjectRepository>(sp => new CachedProjectRepository(
+    sp.GetRequiredService<ProjectRepository>(),
+    sp.GetRequiredService<IDistributedCache>()));
 builder.Services.AddScoped<ITokenService,      TokenService>();
 builder.Services.AddScoped<IAuthService,       AuthService>();
 builder.Services.AddScoped<IProjectService,    ProjectService>();
