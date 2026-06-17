@@ -1,15 +1,12 @@
 name: CD
 
 on:
-  workflow_run:
-    workflows: [CI]
-    branches: [main]
-    types: [completed]
+  workflow_dispatch:
 
 jobs:
   build:
     name: Build & push images
-    if: ${{ github.event.workflow_run.conclusion == 'success' }}
+    if: true
     runs-on: ubuntu-latest
     permissions:
       id-token: write
