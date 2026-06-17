@@ -1,7 +1,9 @@
 using System.Text;
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Caching.Memory;
 using Microsoft.IdentityModel.Tokens;
+using ProjectManagementSystem.BackgroundServices;
 using ProjectManagementSystem.Data;
 using ProjectManagementSystem.Hubs;
 using ProjectManagementSystem.Middleware;
@@ -71,8 +73,13 @@ builder.Services.AddScoped<ITokenService,      TokenService>();
 builder.Services.AddScoped<IAuthService,       AuthService>();
 builder.Services.AddScoped<IProjectService,    ProjectService>();
 builder.Services.AddScoped<IUserService,       UserService>();
-builder.Services.AddScoped<ISprintRepository,  SprintRepository>();
+builder.Services.AddMemoryCache();
+builder.Services.AddScoped<SprintRepository>();
+builder.Services.AddScoped<ISprintRepository>(sp => new CachedSprintRepository(
+    sp.GetRequiredService<SprintRepository>(),
+    sp.GetRequiredService<IMemoryCache>()));
 builder.Services.AddScoped<ISprintService,     SprintService>();
+builder.Services.AddHostedService<SprintActiveChangeListener>();
 builder.Services.AddScoped<ITicketRepository,    TicketRepository>();
 builder.Services.AddScoped<ITicketService,       TicketService>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();

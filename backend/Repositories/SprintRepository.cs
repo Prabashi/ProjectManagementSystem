@@ -27,7 +27,10 @@ public class SprintRepository : ISprintRepository
         => await _context.Sprints.FindAsync(sprintId);
 
     public async Task<Sprint?> GetActiveSprintAsync(Guid projectId)
-        => await _context.Sprints.FirstOrDefaultAsync(s => s.ProjectId == projectId && s.IsActive);
+        // AsNoTracking: results may be cached (see CachedSprintRepository) and held across
+        // requests, so they must never be attached to a later request's DbContext.
+        => await _context.Sprints.AsNoTracking()
+            .FirstOrDefaultAsync(s => s.ProjectId == projectId && s.IsActive);
 
     public async Task UpdateAsync(Sprint sprint)
     {

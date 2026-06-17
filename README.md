@@ -134,4 +134,4 @@ BASE_URL=http://localhost:4173 API_URL=http://localhost:5000/api npm run e2e
 
 1. Create `backend/sql/V{next}__{Description}.sql`
 2. Apply it: `docker compose run --rm migrate`
-3. Regenerate EF Core entities: `bash backend/scripts/scaffold.sh`
+3. Regenerate EF Core entities: `cd backend && bash scripts/scaffold.sh`
