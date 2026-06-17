@@ -41,10 +41,47 @@ services:
       - "8080:8080"
     environment:
       ASPNETCORE_ENVIRONMENT: Docker
+    healthcheck:
+      test:     ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 10s
+      timeout:  5s
+      retries:  10
+      start_period: 30s
     depends_on:
       migrate:
         condition: service_completed_successfully
       redis:
+        condition: service_healthy
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    healthcheck:
+      test:     ["CMD-SHELL", "wget -qO- http://localhost:80 || exit 1"]
+      interval: 5s
+      timeout:  3s
+      retries:  10
+    depends_on:
+      api:
+        condition: service_healthy
+
+  e2e:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile.e2e
+    environment:
+      BASE_URL: http://frontend
+      API_URL:  http://frontend/api
+      HEADLESS: "true"
+      DOCKER:   "true"
+    volumes:
+      - ./frontend/e2e/reports:/app/e2e/reports
+    command: npm run e2e
+    depends_on:
+      frontend:
+        condition: service_healthy
+      api:
         condition: service_healthy
 
 volumes:

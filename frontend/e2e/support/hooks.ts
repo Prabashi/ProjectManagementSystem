@@ -12,6 +12,7 @@ BeforeAll(async () => {
   browser = await chromium.launch({
     headless: process.env.HEADLESS !== 'false',
     slowMo: process.env.HEADLESS === 'false' ? 80 : 0,
+    args: process.env.DOCKER ? ['--no-sandbox', '--disable-setuid-sandbox'] : [],
   });
 });
 
@@ -29,10 +30,10 @@ Before(async function (this: CustomWorld) {
 
 After(async function (this: CustomWorld, scenario) {
   if (scenario.result?.status === 'FAILED') {
-    const safeName = scenario.pickle.name.replace(/\s+/g, '_').replace(/[^a-zA-Z0-9_]/g, '');
-    await this.page
-      .screenshot({ path: `e2e/reports/screenshots/${safeName}.png` })
-      .catch(() => undefined);
+    const screenshot = await this.page.screenshot().catch(() => undefined);
+    if (screenshot) {
+      await this.attach(screenshot, 'image/png');
+    }
   }
   await this.context?.close();
 });

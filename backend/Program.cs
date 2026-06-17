@@ -97,6 +97,7 @@ builder.Services.AddScoped<ITicketService,       TicketService>();
 builder.Services.AddScoped<IDashboardRepository, DashboardRepository>();
 builder.Services.AddScoped<IDashboardService,    DashboardService>();
 builder.Services.AddScoped<IProjectNotifier,     SignalRProjectNotifier>();
+builder.Services.AddHealthChecks();
 
 // ─────────────────────────────────────────────────────────────────────────────
 var app = builder.Build();
@@ -110,6 +111,7 @@ app.UseHttpsRedirection();
 app.UseCors("Frontend");
 app.UseAuthentication();
 app.UseAuthorization();
+app.MapHealthChecks("/health");
 app.MapControllers();
 app.MapHub<ProjectHub>("/hubs/project");
 

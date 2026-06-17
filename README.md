@@ -57,45 +57,60 @@ dotnet test
 npm test
 ```
 
-**E2E tests — Cucumber + Playwright** (from `frontend/`):
+**E2E tests — Cucumber + Playwright**
 
-E2E tests require the full stack to be running before executing the suite.
+### Option A — Fully in Docker (recommended)
 
-### 1. First-time browser install
+No local installs or manual service startup needed. A single command builds every image, starts the full stack in dependency order, runs all scenarios, and exits with the test result code:
+
+```bash
+# From the monorepo root
+docker compose -f docker-compose.fullstack.yml run --rm e2e
+```
+
+On the first run Docker builds the images (takes a few minutes). Subsequent runs reuse the cached layers.
+
+If you have made changes to the backend or frontend source since the last run, rebuild the affected images first:
+
+```bash
+# From the monorepo root
+docker compose -f docker-compose.fullstack.yml build api e2e
+```
+
+Then re-run the suite as normal.
+
+### Option B — Local (for headed debugging)
+
+Use this when you want a visible browser window to debug a failing scenario.
+
+**Prerequisites (first time only):**
 
 ```bash
 cd frontend
+npm install
 npx playwright install chromium
 ```
 
-This only needs to be done once per machine.
-
-### 2. Start the full stack
-
-**Option A — Docker for everything except the frontend dev server (recommended for E2E):**
+**Start the full stack manually:**
 
 ```bash
-# From the monorepo root — starts db, runs migrations, and starts the API
-docker compose -f docker-compose.fullstack.yml up
+# Terminal 1 — monorepo root: PostgreSQL + Redis + migrations
+docker compose up
 
-# In a separate terminal, from frontend/
+# Terminal 2 — backend/
+dotnet run
+
+# Terminal 3 — frontend/
 npm run dev
 ```
 
-**Option B — Manual (already running locally):**
-
-Make sure all three are running:
-- `docker compose up` (PostgreSQL + migrations)
-- `dotnet run` from `backend/` (API on http://localhost:5231)
-- `npm run dev` from `frontend/` (frontend on http://localhost:5173)
-
-### 3. Run the tests
+**Run the tests:**
 
 ```bash
-# From frontend/ — headless (default, suitable for CI)
+# From frontend/ — headless
 npm run e2e
 
-# With a visible browser window (useful for debugging)
+# With a visible browser window
 npm run e2e:headed
 ```
 
@@ -103,8 +118,10 @@ npm run e2e:headed
 
 | Variable | Default | Description |
 |---|---|---|
-| `BASE_URL` | `http://localhost:5173` | Frontend URL |
-| `API_URL` | `http://localhost:5231/api` | Backend API URL |
+| `BASE_URL` | `http://localhost:5173` | Frontend URL Playwright navigates to |
+| `API_URL` | `http://localhost:5231/api` | Backend API URL for setup calls |
+| `HEADLESS` | `true` | Set to `false` for a visible browser |
+| `DOCKER` | unset | Set to any value inside Docker to enable `--no-sandbox` |
 
 Override them inline if your ports differ:
 
@@ -115,7 +132,8 @@ BASE_URL=http://localhost:4173 API_URL=http://localhost:5000/api npm run e2e
 ### Test output
 
 - **Pass/fail** results are printed to the terminal.
-- **Screenshots** on failure are saved to `frontend/e2e/reports/screenshots/`.
+- **HTML report** is written to `frontend/e2e/reports/report.html` after every run (open in any browser).
+- **Failure screenshots** are embedded directly in the HTML report.
 
 ### Feature coverage
 

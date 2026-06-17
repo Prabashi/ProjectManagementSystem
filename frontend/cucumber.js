@@ -5,7 +5,7 @@ export default {
     'e2e/support/hooks.ts',
     'e2e/steps/**/*.ts',
   ],
-  format: ['progress-bar'],
+  format: ['progress-bar', 'html:e2e/reports/report.html'],
   timeout: 30_000,
   worldParameters: {
     baseUrl: process.env.BASE_URL ?? 'http://localhost:5173',
