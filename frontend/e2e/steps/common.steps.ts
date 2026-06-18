@@ -1,5 +1,5 @@
 import { Given, When, Then } from '@cucumber/cucumber';
-import { expect } from '@playwright/test';
+import { expect, request } from '@playwright/test';
 import type { CustomWorld } from '../support/world.js';
 
 Given('I am logged in as an admin', async function (this: CustomWorld) {
@@ -15,10 +15,21 @@ Given('a project {string} exists', async function (this: CustomWorld, name: stri
 Given(
   'a user {string} with password {string} and role {string} exists',
   async function (this: CustomWorld, username: string, password: string, role: string) {
+    // Use an isolated request context so the register response's Set-Cookie
+    // does not overwrite the admin session cookie in the browser.
+    const ctx = await request.newContext();
     try {
-      await this.apiPost('auth/register', { username, password, role });
-    } catch (e: unknown) {
-      if (!(e instanceof Error) || !e.message.includes('already taken')) throw e;
+      const response = await ctx.post(`${this.apiUrl}/auth/register`, {
+        data: { username, password, role },
+      });
+      if (!response.ok()) {
+        const text = await response.text();
+        if (!text.includes('already taken')) {
+          throw new Error(`POST /auth/register failed ${response.status()}: ${text}`);
+        }
+      }
+    } finally {
+      await ctx.dispose();
     }
   },
 );

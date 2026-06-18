@@ -77,7 +77,8 @@ services:
       HEADLESS: "true"
       DOCKER:   "true"
     volumes:
-      - ./frontend/e2e/reports:/app/e2e/reports
+      - ./frontend/e2e:/app/e2e
+      - ./frontend/cucumber.js:/app/cucumber.js
     command: npm run e2e
     depends_on:
       frontend:
