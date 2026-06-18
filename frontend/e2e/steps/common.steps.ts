@@ -15,7 +15,11 @@ Given('a project {string} exists', async function (this: CustomWorld, name: stri
 Given(
   'a user {string} with password {string} and role {string} exists',
   async function (this: CustomWorld, username: string, password: string, role: string) {
-    await this.apiPost('auth/register', { username, password, role });
+    try {
+      await this.apiPost('auth/register', { username, password, role });
+    } catch (e: unknown) {
+      if (!(e instanceof Error) || !e.message.includes('already taken')) throw e;
+    }
   },
 );
 
